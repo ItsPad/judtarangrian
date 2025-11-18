@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>โปรแกรมเตรียมลงทะเบียนเรียน (Drag & Drop + Conflicts + Section)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root{ --bg:#f6f9fc; --card:#ffffff; --muted:#6b7280; --accent:#2563eb; --accent-2:#06b6d4; --danger:#ef4444; --success:#10b981; --radius:12px; --shadow: 0 6px 20px rgba(16,24,40,0.06);} 
+        *{box-sizing:border-box}
+        body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial;background:var(--bg);color:#0b1220;margin:0;padding:18px}
+        header{text-align:center;margin-bottom:14px}
+        h1{display:inline-block;background:linear-gradient(90deg,#007bff,#00b3ff);color:#fff;padding:10px 16px;border-radius:10px; font-size: 1.5rem; margin: 0;}
+        
+        .container{display:grid;grid-template-columns:360px 1fr;gap:18px}
+        .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:var(--shadow)}
+        
+        label{display:block;font-weight:700;margin-bottom:6px;font-size:0.9rem}
+        input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;background:#fff;font-size:1rem}
+        input:focus,select:focus{outline:2px solid var(--accent);border-color:transparent}
+
+        .btn{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;transition:0.2s}
+        .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+        .btn.danger{background:var(--danger)} 
+        .btn.ghost{background:transparent;border:1px solid #e6e9ef;color:var(--muted)}
+        .btn.ghost:hover{background:#f8fafc}
+        .btn.cancel{background:#94a3b8; display:none;} 
+
+        .button-group {display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+
+        /* Table Styling */
+        .table-wrapper { overflow-x: auto; padding-bottom: 10px; }
+        #schedule-table{width:100%;min-width:600px;table-layout:fixed;border-collapse:separate;border-spacing:0;margin-top:8px}
+        #schedule-table thead th{font-weight:800;color:var(--muted);padding:10px;font-size:13px;text-transform:uppercase;border-bottom:2px solid #f1f5f9}
+        #schedule-table tbody td{height:80px;padding:4px;vertical-align:top;position:relative;border-bottom:1px solid #f1f5f9;border-right:1px solid #f8fafc}
+        #schedule-table tbody td:first-child{border-right:2px solid #f1f5f9;background:#fcfeff}
+
+        /* Course Cell */
+        .course-cell{display:block;width:100%;padding:6px 10px;border-radius:8px;font-weight:700;font-size:0.85rem;box-shadow:0 4px 12px rgba(0,0,0,0.05);cursor:grab;transition:transform 0.1s;margin-bottom:4px;position:relative;z-index:10;}
+        .course-cell:active{cursor:grabbing;transform:scale(0.98)}
+        .course-cell:hover{z-index:20;box-shadow:0 8px 20px rgba(0,0,0,0.1)}
+        
+        .main-course{background:linear-gradient(180deg,#e6f0ff,#dff0ff);border-left:4px solid var(--accent);color:#05263e}
+        .backup-course{background:linear-gradient(180deg,#fff8e6,#fff7df);border-left:4px solid var(--accent-2);color:#452a00}
+        
+        .sec-badge { background:rgba(255,255,255,0.5); border-radius:4px; padding:0 4px; font-size:0.8em; font-weight:normal; margin-left:4px; }
+
+        /* Conflict Visuals */
+        .overlay-conflict{position:absolute;inset:2px;border-radius:8px;background:repeating-linear-gradient(45deg,rgba(239,68,68,0.05),rgba(239,68,68,0.05) 10px,rgba(239,68,68,0.1) 10px,rgba(239,68,68,0.1) 20px);border:2px dashed var(--danger);pointer-events:none;z-index:5}
+        .conflict-badge{display:inline-block;font-size:10px;padding:2px 6px;border-radius:99px;background:#fee2e2;color:#991b1b;margin-left:4px;vertical-align:middle}
+
+        /* Drag & Drop Layers */
+        .drop-layer{position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:1}
+        .drop-slot{width:100%;height:100%;pointer-events:auto;}
+        .drop-slot.drag-over-active{background:rgba(37,99,235,0.1);border-radius:8px;border:2px dashed var(--accent)}
+
+        .stacked{display:flex;flex-direction:column;gap:4px;position:relative;z-index:10;pointer-events:none}
+        .stacked > * {pointer-events:auto} 
+
+        /* Summary & Toast */
+        .summary{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+        .summary .box{padding:14px;border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+        .summary h4 {margin:0 0 10px 0; border-bottom:1px solid #eee; padding-bottom:8px}
+        
+        .list-item {display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:6px;margin-bottom:4px;transition:background 0.2s}
+        .list-item:hover{background:#f8fafc}
+
+        @media(max-width:900px){.container{grid-template-columns:1fr}.summary{grid-template-columns:1fr}}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <header><h1>โปรแกรมเตรียมลงทะเบียนเรียน</h1></header>
+    <div class="container">
+        <div class="card">
+            <h3>เพิ่ม / แก้ไข วิชา</h3>
+            <div style="display:flex; gap:10px;">
+                <div style="flex:3">
+                    <label>ชื่อวิชา</label>
+                    <input id="course-name" type="text" placeholder="MATH101">
+                </div>
+                <div style="flex:1">
+                    <label>ตอน (Sec)</label>
+                    <input id="course-sec" type="text" placeholder="1">
+                </div>
+            </div>
+            
+            <div style="margin-top:12px">
+                <label>ชื่ออาจารย์ (ตัวเลือก)</label>
+                <input id="teacher-name" type="text" placeholder="อ.สมชาย">
+            </div>
+            <div style="display:flex;gap:10px;margin-top:12px">
+                <div style="flex:1"><label>วันที่</label><select id="day"><option value="mon">จันทร์</option><option value="tue">อังคาร</option><option value="wed">พุธ</option><option value="thu">พฤหัสบดี</option><option value="fri">ศุกร์</option></select></div>
+                <div style="flex:1"><label>เริ่ม</label><select id="start-time"></select></div>
+                <div style="flex:1"><label>ถึง</label><select id="end-time"></select></div>
+            </div>
+            <div style="margin-top:12px"><label>ประเภท</label>
+                <div style="display:flex;gap:14px">
+                    <label style="font-weight:400"><input type="radio" name="course-type" value="main" checked> วิชาหลัก</label>
+                    <label style="font-weight:400"><input type="radio" name="course-type" value="backup"> วิชาสำรอง</label>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn" id="add-btn">เพิ่มวิชา</button>
+                <button class="btn cancel" id="cancel-btn">ยกเลิก</button>
+                <button class="btn danger" id="clear-schedule" style="margin-left:auto">ล้างตาราง</button>
+            </div>
+            
+            <hr style="border:0;border-top:1px solid #eee;margin:18px 0">
+            
+            <div class="button-group">
+                <button class="btn ghost" id="import-json">Import JSON</button>
+                <input id="import-file" type="file" accept="application/json" style="display:none">
+                <button class="btn ghost" id="export-json">JSON</button>
+                <button class="btn ghost" id="export-csv">CSV</button>
+                <button class="btn ghost" id="export-ical">iCal</button>
+                <button class="btn ghost" id="export-pdf">PDF (รูป)</button>
+            </div>
+        </div>
+
+        <div class="card" id="schedule-card">
+            <h3>ตารางเรียน</h3>
+            <div class="table-wrapper">
+                <table id="schedule-table">
+                    <thead><tr id="time-header"><th>วัน \ เวลา</th></tr></thead>
+                    <tbody id="schedule-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary" id="summary">
+        <div class="box"><h4>วิชาหลัก (<span id="count-main">0</span>)</h4><div id="main-list"></div></div>
+        <div class="box"><h4>วิชาสำรอง (<span id="count-backup">0</span>)</h4><div id="backup-list"></div></div>
+    </div>
+
+    <div id="toast-wrap" style="position:fixed;right:18px;bottom:18px;z-index:9999;display:flex;flex-direction:column;gap:10px"></div>
+
+    <script>
+        // --- Config & Data ---
+        const hours = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
+        const hourValues = [8,9,10,11,12,13,14,15,16,17,18,19];
+        const days = ["mon","tue","wed","thu","fri"];
+        const dayLabels = {mon:'จันทร์',tue:'อังคาร',wed:'พุธ',thu:'พฤหัสบดี',fri:'ศุกร์'};
+
+        let courses = []; 
+        let editingId = null;
+
+        // --- DOM Elements ---
+        const startSel = document.getElementById('start-time');
+        const endSel = document.getElementById('end-time');
+        const timeHeader = document.getElementById('time-header');
+        const tbody = document.getElementById('schedule-body');
+        const addBtn = document.getElementById('add-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        // --- Init ---
+        function init(){
+            hourValues.forEach(h=>{ const o=document.createElement('option'); o.value=h; o.textContent=(h<10?'0'+h:h)+':00'; startSel.appendChild(o); });
+            hourValues.forEach(h=>{ const o=document.createElement('option'); o.value=h+1; o.textContent=((h+1)<10?'0'+(h+1):(h+1))+':00'; endSel.appendChild(o); });
+            
+            startSel.addEventListener('change', ()=>{
+                const s = parseInt(startSel.value);
+                const e = parseInt(endSel.value);
+                if(e <= s) endSel.value = s+1;
+            });
+
+            while(timeHeader.children.length>1) timeHeader.removeChild(timeHeader.lastChild);
+            hours.forEach(h=>{const th=document.createElement('th'); th.textContent=h; timeHeader.appendChild(th);});
+
+            load();
+            render();
+        }
+
+        // --- Persistence ---
+        function save(){ localStorage.setItem('schedule-courses', JSON.stringify(courses)); }
+        function load(){ try{ courses = JSON.parse(localStorage.getItem('schedule-courses'))||[]; }catch(e){ courses = []; } }
+
+        // --- Core Logic ---
+        function findConflictsFor(course){
+            return courses.filter(c => {
+                if(c.id === course.id) return false;
+                if(c.day !== course.day) return false;
+                return (course.start < c.end && course.end > c.start);
+            }).map(c => c.id);
+        }
+
+        // --- Render ---
+        function render(){
+            tbody.innerHTML='';
+            
+            courses.forEach(c => {
+                const conf = findConflictsFor(c);
+                c.conflict = conf.length > 0;
+            });
+
+            days.forEach(day=>{
+                const tr=document.createElement('tr'); 
+                const tdDay=document.createElement('td'); 
+                tdDay.innerHTML=`<div style="font-weight:800;font-size:14px">${dayLabels[day]}</div>`; 
+                tdDay.style.verticalAlign='middle'; tdDay.style.textAlign='center'; 
+                tr.appendChild(tdDay);
+
+                for(let i=0; i<hourValues.length; i++){
+                    const currentHour = hourValues[i];
+                    const cell=document.createElement('td'); 
+                    cell.style.position='relative';
+
+                    const dropLayer=document.createElement('div'); 
+                    dropLayer.className='drop-layer'; 
+                    const slot=document.createElement('div'); 
+                    slot.className='drop-slot'; 
+                    slot.dataset.day=day; 
+                    slot.dataset.hour=currentHour;
+                    slot.addEventListener('dragover', onDragOver);
+                    slot.addEventListener('dragleave', onDragLeave);
+                    slot.addEventListener('drop', onDrop);
+                    dropLayer.appendChild(slot);
+                    cell.appendChild(dropLayer);
+
+                    const container=document.createElement('div'); 
+                    container.className='stacked';
+                    
+                    const starting = courses.filter(c=>c.day===day && c.start===currentHour);
+                    
+                    const conflictingInSlot = courses.some(c => c.day===day && c.start <= currentHour && c.end > currentHour && c.conflict);
+                    if(conflictingInSlot){
+                        const overlay = document.createElement('div');
+                        overlay.className = 'overlay-conflict';
+                        cell.appendChild(overlay);
+                    }
+
+                    if(starting.length > 0){
+                        starting.forEach(c=>{
+                            const len = c.end - c.start;
+                            const div=document.createElement('div'); 
+                            div.className='course-cell '+(c.type==='main'?'main-course':'backup-course');
+                            div.draggable = true; 
+                            div.dataset.id=c.id;
+                            
+                            let badge = c.conflict ? `<span class="conflict-badge">! ชนกัน</span>` : '';
+                            let secBadge = c.sec ? `<span class="sec-badge">Sec ${escapeHtml(c.sec)}</span>` : '';
+
+                            div.innerHTML = `
+                                <div style="display:flex;justify-content:space-between;align-items:start">
+                                    <div style="line-height:1.2">
+                                        ${escapeHtml(c.name)}${secBadge}${badge}
+                                        ${c.teacher?`<div style="font-weight:400;font-size:11px;color:rgba(0,0,0,0.6)">${escapeHtml(c.teacher)}</div>`:''}
+                                    </div>
+                                    <button class="btn-xs-del" style="border:none;background:none;color:#ef4444;cursor:pointer;font-weight:bold;padding:0 4px" title="ลบ">×</button>
+                                </div>
+                            `;
+                            
+                            div.addEventListener('dragstart', onDragStart);
+                            div.addEventListener('click', (e)=>{
+                                if(e.target.classList.contains('btn-xs-del')){
+                                    e.stopPropagation(); deleteCourse(c.id);
+                                } else {
+                                    startEdit(c.id);
+                                }
+                            });
+                            
+                            if(len > 1){
+                                div.style.width = `calc(${len * 100}% + ${(len-1)*2}px)`; 
+                                div.style.position = 'relative';
+                                div.style.zIndex = '20';
+                            }
+
+                            container.appendChild(div);
+                        });
+                    }
+                    cell.appendChild(container);
+                    tr.appendChild(cell);
+                }
+                tbody.appendChild(tr);
+            });
+
+            renderSummary();
+        }
+
+        function renderSummary(){ 
+            const main=document.getElementById('main-list'); 
+            const backup=document.getElementById('backup-list'); 
+            main.innerHTML=''; backup.innerHTML='';
+            document.getElementById('count-main').textContent = courses.filter(c=>c.type==='main').length;
+            document.getElementById('count-backup').textContent = courses.filter(c=>c.type==='backup').length;
+
+            const sorted = [...courses].sort((a,b)=>{ if(days.indexOf(a.day)!==days.indexOf(b.day)) return days.indexOf(a.day)-days.indexOf(b.day); return a.start-b.start; });
+            
+            sorted.forEach(c=>{
+                const div=document.createElement('div'); 
+                div.className='list-item';
+                div.innerHTML=`
+                    <div>
+                        <strong>${escapeHtml(c.name)}</strong> 
+                        ${c.sec ? `<span style="font-size:0.9em; background:#eee; padding:1px 4px; border-radius:4px; margin-left:4px">Sec ${escapeHtml(c.sec)}</span>` : ''}
+                        <span style="color:#6b7280;font-size:0.9em;margin-left:6px">
+                            ${dayLabels[c.day]} ${c.start}:00-${c.end}:00 
+                            ${c.teacher?`(${c.teacher})`:''}
+                        </span>
+                        ${c.conflict?'<span class="conflict-badge">Conflict</span>':''}
+                    </div>
+                    <div>
+                        <button onclick="startEdit('${c.id}')" style="border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;margin-right:4px">✏️</button>
+                        <button onclick="deleteCourse('${c.id}')" style="border:1px solid #fee2e2;background:#fff;color:red;border-radius:4px;cursor:pointer">✖</button>
+                    </div>
+                `;
+                if(c.type==='main') main.appendChild(div); else backup.appendChild(div);
+            });
+        }
+
+        // --- Drag & Drop Logic ---
+        function onDragStart(e){ 
+            e.dataTransfer.setData('text/plain', e.target.dataset.id); 
+            e.dataTransfer.effectAllowed='move'; 
+            setTimeout(()=>e.target.style.opacity='0.5',0);
+        }
+        function onDragOver(e){ 
+            e.preventDefault(); 
+            e.dataTransfer.dropEffect='move'; 
+            e.currentTarget.classList.add('drag-over-active');
+        }
+        function onDragLeave(e){
+            e.currentTarget.classList.remove('drag-over-active');
+        }
+        function onDrop(e){ 
+            e.preventDefault(); 
+            e.currentTarget.classList.remove('drag-over-active');
+            const id = e.dataTransfer.getData('text/plain'); 
+            if(!id) return; 
+            
+            const slot = e.currentTarget; 
+            const newDay = slot.dataset.day; 
+            const newStart = parseInt(slot.dataset.hour,10);
+
+            const course = courses.find(c=>c.id===id); 
+            if(!course) return;
+
+            const len = course.end - course.start; 
+            const proposedEnd = newStart + len;
+            
+            if(proposedEnd > 20){ 
+                showToast('วางไม่ได้! เลยเวลาเรียน (20:00)', 'error'); 
+                render(); 
+                return; 
+            }
+
+            course.day = newDay; 
+            course.start = newStart; 
+            course.end = proposedEnd;
+            
+            save(); 
+            render(); 
+            showToast('ย้ายวิชาเรียบร้อย', 'success'); 
+        }
+        document.addEventListener('dragend', (e)=>{ if(e.target.classList.contains('course-cell')) render(); });
+
+
+        // --- Actions ---
+        addBtn.addEventListener('click', ()=>{
+            const name = document.getElementById('course-name').value.trim();
+            const sec = document.getElementById('course-sec').value.trim();
+            const teacher = document.getElementById('teacher-name').value.trim();
+            const day = document.getElementById('day').value;
+            const start = parseInt(startSel.value,10);
+            const end = parseInt(endSel.value,10);
+            const type = document.querySelector('input[name="course-type"]:checked').value;
+
+            if(!name){ showToast('กรุณาระบุชื่อวิชา','error'); return; }
+            if(start>=end){ showToast('เวลาเริ่ม-จบ ไม่ถูกต้อง','error'); return; }
+
+            const id = editingId || ('c'+Date.now()+Math.random().toString(16).slice(2));
+            const newCourse = { id, name, sec, teacher, day, start, end, type };
+
+            if(editingId){
+                const idx = courses.findIndex(x=>x.id===editingId);
+                if(idx!==-1) courses[idx] = newCourse;
+                showToast('แก้ไขข้อมูลแล้ว', 'success');
+            } else {
+                courses.push(newCourse);
+                showToast('เพิ่มวิชาแล้ว', 'success');
+            }
+
+            resetForm();
+            save();
+            render();
+        });
+
+        function startEdit(id){
+            const c = courses.find(x=>x.id===id);
+            if(!c) return;
+            editingId = id;
+            document.getElementById('course-name').value = c.name;
+            document.getElementById('course-sec').value = c.sec || '';
+            document.getElementById('teacher-name').value = c.teacher||'';
+            document.getElementById('day').value = c.day;
+            startSel.value = c.start;
+            endSel.value = c.end;
+            document.querySelector(`input[name="course-type"][value="${c.type}"]`).checked = true;
+            
+            addBtn.textContent = 'บันทึกแก้ไข';
+            addBtn.className = 'btn'; 
+            addBtn.style.background = '#f59e0b'; 
+            cancelBtn.style.display = 'inline-block';
+            
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        function resetForm(){
+            editingId = null;
+            document.getElementById('course-name').value = '';
+            document.getElementById('course-sec').value = '';
+            document.getElementById('teacher-name').value = '';
+            document.getElementById('day').value = 'mon';
+            startSel.value = 8;
+            endSel.value = 9;
+            document.querySelector('input[value="main"]').checked = true;
+            
+            addBtn.textContent = 'เพิ่มวิชา';
+            addBtn.style.background = ''; 
+            cancelBtn.style.display = 'none';
+        }
+
+        cancelBtn.addEventListener('click', resetForm);
+
+        function deleteCourse(id){
+            if(!confirm('ยืนยันการลบวิชานี้?')) return;
+            courses = courses.filter(c=>c.id!==id);
+            if(editingId === id) resetForm();
+            save();
+            render();
+            showToast('ลบวิชาเรียบร้อย', 'error');
+        }
+
+        document.getElementById('clear-schedule').addEventListener('click', ()=>{
+            if(!confirm('ต้องการล้างตารางทั้งหมดใช่หรือไม่?')) return;
+            courses = [];
+            resetForm();
+            save();
+            render();
+            showToast('ล้างตารางแล้ว', 'error');
+        });
+
+
+        // --- Exports ---
+        function escapeHtml(s){ if(!s && s!==0) return ''; return String(s).replace(/[&<>"]/g, function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
+
+        document.getElementById('export-json').addEventListener('click', ()=>{
+            const j=JSON.stringify(courses,null,2);
+            const blob=new Blob([j],{type:'application/json'});
+            const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='schedule.json'; a.click();
+            showToast('ดาวน์โหลด JSON แล้ว','success');
+        });
+
+        document.getElementById('import-json').addEventListener('click', ()=>document.getElementById('import-file').click());
+        document.getElementById('import-file').addEventListener('change', (e)=>{
+            const f=e.target.files[0]; if(!f) return;
+            const r=new FileReader(); r.onload=function(){
+                try{ 
+                    const p=JSON.parse(this.result); 
+                    if(Array.isArray(p)) { courses=p; save(); render(); showToast('นำเข้าข้อมูลสำเร็จ','success'); }
+                }catch(err){ showToast('ไฟล์ไม่ถูกต้อง','error'); }
+            }; r.readAsText(f); e.target.value='';
+        });
+
+        document.getElementById('export-csv').addEventListener('click', ()=>{
+            const head = ['ID','Name','Section','Teacher','Day','Start','End','Type'];
+            const rows = courses.map(c=>[c.id,`"${c.name}"`,`"${c.sec||''}"`,`"${c.teacher||''}"`,c.day,c.start,c.end,c.type].join(','));
+            const csv = [head.join(','),...rows].join('\r\n');
+            const blob=new Blob([csv],{type:'text/csv'});
+            const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='schedule.csv'; a.click();
+        });
+
+        document.getElementById('export-ical').addEventListener('click', ()=>{
+            let ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Schedule//EN'];
+            const now = new Date();
+            courses.forEach(c=>{
+                const dIdx = {mon:1,tue:2,wed:3,thu:4,fri:5}[c.day];
+                const diff = (dIdx + 7 - now.getDay()) % 7 || 7; 
+                const d = new Date(now); d.setDate(d.getDate()+diff);
+                const fmt = (dt) => dt.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+                const startDt = new Date(d); startDt.setHours(c.start,0,0);
+                const endDt = new Date(d); endDt.setHours(c.end,0,0);
+                
+                ics.push('BEGIN:VEVENT');
+                ics.push(`SUMMARY:${c.name} ${c.sec ? '(Sec '+c.sec+')' : ''}`);
+                ics.push(`DTSTART:${fmt(startDt)}`);
+                ics.push(`DTEND:${fmt(endDt)}`);
+                ics.push(`DESCRIPTION:Teacher: ${c.teacher || '-'}`);
+                ics.push(`RRULE:FREQ=WEEKLY;COUNT=16`);
+                ics.push('END:VEVENT');
+            });
+            ics.push('END:VCALENDAR');
+            const blob=new Blob([ics.join('\r\n')],{type:'text/calendar'});
+            const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='schedule.ics'; a.click();
+        });
+
+        document.getElementById('export-pdf').addEventListener('click', async ()=>{
+            showToast('กำลังสร้างรูปภาพ PDF...', 'info');
+            const el = document.getElementById('schedule-card');
+            const oldShadow = el.style.boxShadow; el.style.boxShadow='none';
+            try {
+                const canvas = await html2canvas(el, {scale:2, backgroundColor:'#ffffff'});
+                const img = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('l', 'pt', [canvas.width, canvas.height]);
+                pdf.addImage(img, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save('schedule.pdf');
+                showToast('บันทึก PDF เรียบร้อย', 'success');
+            } catch(e){ console.error(e); showToast('เกิดข้อผิดพลาด', 'error'); }
+            el.style.boxShadow = oldShadow;
+        });
+
+        function showToast(msg,type='info'){
+            const t=document.createElement('div');
+            t.textContent=msg;
+            t.style.padding='10px 16px'; t.style.background='#fff'; t.style.borderRadius='8px';
+            t.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'; t.style.fontSize='14px';
+            t.style.borderLeft=`5px solid ${type==='error'?'#ef4444':(type==='success'?'#10b981':'#3b82f6')}`;
+            t.style.animation='fadeIn 0.3s';
+            document.getElementById('toast-wrap').appendChild(t);
+            setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2500);
+        }
+
+        // Run
+        init();
+    </script>
+</body>
+</html>
