@@ -3,529 +3,799 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>โปรแกรมเตรียมลงทะเบียนเรียน (Drag & Drop + Conflicts + Section)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <title>Smart Scheduler: วางแผนลงทะเบียนเรียน</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <style>
-        :root{ --bg:#f6f9fc; --card:#ffffff; --muted:#6b7280; --accent:#2563eb; --accent-2:#06b6d4; --danger:#ef4444; --success:#10b981; --radius:12px; --shadow: 0 6px 20px rgba(16,24,40,0.06);} 
-        *{box-sizing:border-box}
-        body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial;background:var(--bg);color:#0b1220;margin:0;padding:18px}
-        header{text-align:center;margin-bottom:14px}
-        h1{display:inline-block;background:linear-gradient(90deg,#007bff,#00b3ff);color:#fff;padding:10px 16px;border-radius:10px; font-size: 1.5rem; margin: 0;}
+        :root {
+            --primary: #4f46e5; /* Indigo */
+            --primary-light: #e0e7ff;
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --text: #1f2937;
+            --text-muted: #6b7280;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: #e5e7eb;
+            --radius: 16px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         
-        .container{display:grid;grid-template-columns:360px 1fr;gap:18px}
-        .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:var(--shadow)}
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        /* --- Layout --- */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* --- Header & Plan Switcher --- */
+        .top-bar {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            background: var(--surface);
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+        }
         
-        label{display:block;font-weight:700;margin-bottom:6px;font-size:0.9rem}
-        input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;background:#fff;font-size:1rem}
-        input:focus,select:focus{outline:2px solid var(--accent);border-color:transparent}
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand h1 { margin: 0; font-size: 1.25rem; color: var(--primary); }
+        .brand i { font-size: 1.5rem; color: var(--primary); }
 
-        .btn{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;transition:0.2s}
-        .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
-        .btn.danger{background:var(--danger)} 
-        .btn.ghost{background:transparent;border:1px solid #e6e9ef;color:var(--muted)}
-        .btn.ghost:hover{background:#f8fafc}
-        .btn.cancel{background:#94a3b8; display:none;} 
+        .plan-selector {
+            display: flex;
+            background: var(--bg);
+            padding: 4px;
+            border-radius: 12px;
+        }
+        .plan-btn {
+            border: none;
+            background: transparent;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Prompt', sans-serif;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+        .plan-btn.active {
+            background: var(--surface);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
 
-        .button-group {display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+        /* --- Card Component --- */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+        }
 
-        /* Table Styling */
-        .table-wrapper { overflow-x: auto; padding-bottom: 10px; }
-        #schedule-table{width:100%;min-width:600px;table-layout:fixed;border-collapse:separate;border-spacing:0;margin-top:8px}
-        #schedule-table thead th{font-weight:800;color:var(--muted);padding:10px;font-size:13px;text-transform:uppercase;border-bottom:2px solid #f1f5f9}
-        #schedule-table tbody td{height:80px;padding:4px;vertical-align:top;position:relative;border-bottom:1px solid #f1f5f9;border-right:1px solid #f8fafc}
-        #schedule-table tbody td:first-child{border-right:2px solid #f1f5f9;background:#fcfeff}
+        h3 { margin-top: 0; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* Course Cell */
-        .course-cell{display:block;width:100%;padding:6px 10px;border-radius:8px;font-weight:700;font-size:0.85rem;box-shadow:0 4px 12px rgba(0,0,0,0.05);cursor:grab;transition:transform 0.1s;margin-bottom:4px;position:relative;z-index:10;}
-        .course-cell:active{cursor:grabbing;transform:scale(0.98)}
-        .course-cell:hover{z-index:20;box-shadow:0 8px 20px rgba(0,0,0,0.1)}
+        /* --- Form --- */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group.full { grid-column: 1 / -1; }
         
-        .main-course{background:linear-gradient(180deg,#e6f0ff,#dff0ff);border-left:4px solid var(--accent);color:#05263e}
-        .backup-course{background:linear-gradient(180deg,#fff8e6,#fff7df);border-left:4px solid var(--accent-2);color:#452a00}
+        label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.85rem; color: var(--text); }
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            background: #f9fafb;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            font-family: 'Prompt', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+        .btn-secondary { background: white; border: 1px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { background: #f9fafb; }
+        .btn-danger { background: #fee2e2; color: #dc2626; }
+        .btn-ghost { background: transparent; color: var(--text-muted); width: auto; padding: 8px; }
+        .btn-icon { width: 32px; height: 32px; padding: 0; border-radius: 6px; display: inline-flex; }
+
+        /* --- Stats --- */
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        /* --- Schedule Table --- */
+        .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; table-layout: fixed; }
         
-        .sec-badge { background:rgba(255,255,255,0.5); border-radius:4px; padding:0 4px; font-size:0.8em; font-weight:normal; margin-left:4px; }
+        th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            width: 8.33%; /* 12 columns */
+        }
+        th:first-child { width: 60px; position: sticky; left: 0; z-index: 10; border-right: 1px solid var(--border); }
 
-        /* Conflict Visuals */
-        .overlay-conflict{position:absolute;inset:2px;border-radius:8px;background:repeating-linear-gradient(45deg,rgba(239,68,68,0.05),rgba(239,68,68,0.05) 10px,rgba(239,68,68,0.1) 10px,rgba(239,68,68,0.1) 20px);border:2px dashed var(--danger);pointer-events:none;z-index:5}
-        .conflict-badge{display:inline-block;font-size:10px;padding:2px 6px;border-radius:99px;background:#fee2e2;color:#991b1b;margin-left:4px;vertical-align:middle}
+        td {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            border-right: 1px solid #f3f4f6;
+            position: relative;
+            padding: 0;
+            vertical-align: top;
+        }
+        td:first-child {
+            background: #ffffff;
+            color: var(--text);
+            font-weight: 600;
+            text-align: center;
+            vertical-align: middle;
+            border-right: 1px solid var(--border);
+            position: sticky; left: 0; z-index: 10;
+        }
 
-        /* Drag & Drop Layers */
-        .drop-layer{position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:1}
-        .drop-slot{width:100%;height:100%;pointer-events:auto;}
-        .drop-slot.drag-over-active{background:rgba(37,99,235,0.1);border-radius:8px;border:2px dashed var(--accent)}
-
-        .stacked{display:flex;flex-direction:column;gap:4px;position:relative;z-index:10;pointer-events:none}
-        .stacked > * {pointer-events:auto} 
-
-        /* Summary & Toast */
-        .summary{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
-        .summary .box{padding:14px;border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
-        .summary h4 {margin:0 0 10px 0; border-bottom:1px solid #eee; padding-bottom:8px}
+        /* --- Course Block --- */
+        .course-block {
+            position: absolute;
+            top: 2px; bottom: 2px; left: 2px; right: 2px;
+            border-radius: 8px;
+            padding: 6px 8px;
+            font-size: 0.75rem;
+            color: #fff;
+            cursor: grab;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.3;
+        }
+        .course-block:hover { transform: scale(1.02); z-index: 20; box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
+        .course-block:active { cursor: grabbing; }
+        .course-title { font-weight: 700; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .course-detail { opacity: 0.9; font-size: 0.7rem; white-space: nowrap; }
         
-        .list-item {display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:6px;margin-bottom:4px;transition:background 0.2s}
-        .list-item:hover{background:#f8fafc}
+        .btn-delete-xs {
+            position: absolute; top: 2px; right: 4px;
+            background: rgba(0,0,0,0.2);
+            border: none; color: #fff;
+            width: 16px; height: 16px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; font-size: 10px;
+            opacity: 0; transition: 0.2s;
+        }
+        .course-block:hover .btn-delete-xs { opacity: 1; }
 
-        @media(max-width:900px){.container{grid-template-columns:1fr}.summary{grid-template-columns:1fr}}
+        .conflict-pattern {
+            background-image: repeating-linear-gradient(45deg, rgba(255,0,0,0.1), rgba(255,0,0,0.1) 10px, rgba(255,0,0,0.2) 10px, rgba(255,0,0,0.2) 20px);
+            border: 2px dashed #ef4444;
+        }
+
+        /* --- Drag State --- */
+        .drag-over { background: var(--primary-light) !important; }
+
+        /* --- List Item --- */
+        .course-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f9fafb;
+            margin-bottom: 8px;
+            border-left: 4px solid transparent;
+        }
+        .course-list-item:hover { background: #f3f4f6; }
+
+        /* --- Mobile --- */
+        @media (max-width: 1024px) {
+            .app-container { grid-template-columns: 1fr; }
+            .top-bar { flex-direction: column; gap: 12px; align-items: stretch; }
+            .plan-selector { justify-content: center; }
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 20px; right: 20px;
+            background: #1f2937; color: white;
+            padding: 12px 24px; border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: flex; align-items: center; gap: 10px;
+            animation: slideUp 0.3s forwards;
+            z-index: 9999;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-    <header><h1>โปรแกรมเตรียมลงทะเบียนเรียน</h1></header>
-    <div class="container">
-        <div class="card">
-            <h3>เพิ่ม / แก้ไข วิชา</h3>
-            <div style="display:flex; gap:10px;">
-                <div style="flex:3">
-                    <label>ชื่อวิชา</label>
-                    <input id="course-name" type="text" placeholder="MATH101">
-                </div>
-                <div style="flex:1">
-                    <label>ตอน (Sec)</label>
-                    <input id="course-sec" type="text" placeholder="1">
+
+    <div class="app-container">
+        <div class="top-bar">
+            <div class="brand">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <div>
+                    <h1 style="line-height:1">Smart Reg</h1>
+                    <small style="color:var(--text-muted)">วางแผนลงทะเบียนเรียน</small>
                 </div>
             </div>
-            
-            <div style="margin-top:12px">
-                <label>ชื่ออาจารย์ (ตัวเลือก)</label>
-                <input id="teacher-name" type="text" placeholder="อ.สมชาย">
+            <div class="plan-selector">
+                <button class="plan-btn active" onclick="switchPlan('planA')">แผนหลัก (A)</button>
+                <button class="plan-btn" onclick="switchPlan('planB')">แผนสำรอง 1 (B)</button>
+                <button class="plan-btn" onclick="switchPlan('planC')">แผนสำรอง 2 (C)</button>
             </div>
-            <div style="display:flex;gap:10px;margin-top:12px">
-                <div style="flex:1"><label>วันที่</label><select id="day"><option value="mon">จันทร์</option><option value="tue">อังคาร</option><option value="wed">พุธ</option><option value="thu">พฤหัสบดี</option><option value="fri">ศุกร์</option></select></div>
-                <div style="flex:1"><label>เริ่ม</label><select id="start-time"></select></div>
-                <div style="flex:1"><label>ถึง</label><select id="end-time"></select></div>
-            </div>
-            <div style="margin-top:12px"><label>ประเภท</label>
-                <div style="display:flex;gap:14px">
-                    <label style="font-weight:400"><input type="radio" name="course-type" value="main" checked> วิชาหลัก</label>
-                    <label style="font-weight:400"><input type="radio" name="course-type" value="backup"> วิชาสำรอง</label>
-                </div>
-            </div>
-            
-            <div class="button-group">
-                <button class="btn" id="add-btn">เพิ่มวิชา</button>
-                <button class="btn cancel" id="cancel-btn">ยกเลิก</button>
-                <button class="btn danger" id="clear-schedule" style="margin-left:auto">ล้างตาราง</button>
-            </div>
-            
-            <hr style="border:0;border-top:1px solid #eee;margin:18px 0">
-            
-            <div class="button-group">
-                <button class="btn ghost" id="import-json">Import JSON</button>
-                <input id="import-file" type="file" accept="application/json" style="display:none">
-                <button class="btn ghost" id="export-json">JSON</button>
-                <button class="btn ghost" id="export-csv">CSV</button>
-                <button class="btn ghost" id="export-ical">iCal</button>
-                <button class="btn ghost" id="export-pdf">PDF (รูป)</button>
+            <div>
+                <button class="btn btn-secondary" id="export-btn" style="width:auto; padding:8px 16px;">
+                    <i class="fa-solid fa-download"></i> ส่งออก (PDF)
+                </button>
             </div>
         </div>
 
-        <div class="card" id="schedule-card">
-            <h3>ตารางเรียน</h3>
-            <div class="table-wrapper">
+        <div style="display:flex; flex-direction:column; gap:20px;">
+            <div class="card">
+                <h3><i class="fa-solid fa-plus-circle"></i> เพิ่มวิชาเรียน</h3>
+                
+                <div class="form-group full">
+                    <label>รหัส/ชื่อวิชา</label>
+                    <input type="text" id="c-name" placeholder="เช่น 010063004 - Web Programming">
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>ตอนเรียน (Sec)</label>
+                        <input type="text" id="c-sec" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label>หน่วยกิต</label>
+                        <input type="number" id="c-credit" value="3" min="0" max="10">
+                    </div>
+                </div>
+
+                <div class="form-group full">
+                    <label>ชื่อผู้สอน (ถ้ามี)</label>
+                    <input type="text" id="c-teacher" placeholder="อ.สมชาย">
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>วันเรียน</label>
+                        <select id="c-day">
+                            <option value="mon">จันทร์</option>
+                            <option value="tue">อังคาร</option>
+                            <option value="wed">พุธ</option>
+                            <option value="thu">พฤหัสบดี</option>
+                            <option value="fri">ศุกร์</option>
+                            <option value="sat">เสาร์</option>
+                            <option value="sun">อาทิตย์</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>เวลา</label>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <select id="c-start" style="padding-right:0"></select>
+                            <span>-</span>
+                            <select id="c-end" style="padding-right:0"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                    <button class="btn" id="add-btn"><i class="fa-solid fa-check"></i> เพิ่มวิชา</button>
+                    <button class="btn btn-secondary btn-icon" id="cancel-btn" style="display:none" title="ยกเลิกแก้ไข"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+
+            <div class="card" style="flex-grow:1">
+                <h3><i class="fa-solid fa-list"></i> รายวิชา (<span id="course-count">0</span>)</h3>
+                <div class="stats-bar">
+                    <span>รวมหน่วยกิต</span>
+                    <span id="total-credits">0</span>
+                </div>
+                <div id="course-list" style="max-height: 400px; overflow-y:auto;">
+                    <div style="text-align:center; color:#aaa; padding:20px;">ยังไม่มีวิชาในแผนนี้</div>
+                </div>
+                <button class="btn btn-danger" onclick="clearPlan()" style="margin-top:16px; background:transparent; border:1px solid #fee2e2; color:#ef4444;">
+                    <i class="fa-solid fa-trash"></i> ล้างตารางแผนนี้
+                </button>
+            </div>
+        </div>
+
+        <div class="card" id="schedule-capture-area">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="margin:0;"><i class="fa-regular fa-calendar"></i> ตารางเรียน</h3>
+                <span id="current-plan-label" style="background:var(--primary-light); color:var(--primary); padding:4px 12px; border-radius:20px; font-size:0.8rem; font-weight:600;">แผน A</span>
+            </div>
+
+            <div class="table-container">
                 <table id="schedule-table">
-                    <thead><tr id="time-header"><th>วัน \ เวลา</th></tr></thead>
-                    <tbody id="schedule-body"></tbody>
+                    <thead>
+                        <tr id="header-row">
+                            <th>วัน/เวลา</th>
+                            </tr>
+                    </thead>
+                    <tbody id="schedule-body">
+                        </tbody>
                 </table>
             </div>
+            <div style="margin-top:10px; font-size:0.8rem; color:var(--text-muted); text-align:right;">
+                * สามารถลากวิชาเพื่อเปลี่ยนเวลาได้
+            </div>
         </div>
     </div>
 
-    <div class="summary" id="summary">
-        <div class="box"><h4>วิชาหลัก (<span id="count-main">0</span>)</h4><div id="main-list"></div></div>
-        <div class="box"><h4>วิชาสำรอง (<span id="count-backup">0</span>)</h4><div id="backup-list"></div></div>
-    </div>
-
-    <div id="toast-wrap" style="position:fixed;right:18px;bottom:18px;z-index:9999;display:flex;flex-direction:column;gap:10px"></div>
-
     <script>
-        // --- Config & Data ---
-        const hours = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
-        const hourValues = [8,9,10,11,12,13,14,15,16,17,18,19];
-        const days = ["mon","tue","wed","thu","fri"];
-        const dayLabels = {mon:'จันทร์',tue:'อังคาร',wed:'พุธ',thu:'พฤหัสบดี',fri:'ศุกร์'};
+        // --- Configuration ---
+        const CONFIG = {
+            hours: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+            days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
+            dayLabels: {mon:'จันทร์', tue:'อังคาร', wed:'พุธ', thu:'พฤหัส', fri:'ศุกร์', sat:'เสาร์', sun:'อาทิตย์'},
+            colors: [
+                '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'
+            ]
+        };
 
-        let courses = []; 
-        let editingId = null;
+        let state = {
+            currentPlan: 'planA',
+            data: {
+                planA: [],
+                planB: [],
+                planC: []
+            },
+            editingId: null
+        };
 
-        // --- DOM Elements ---
-        const startSel = document.getElementById('start-time');
-        const endSel = document.getElementById('end-time');
-        const timeHeader = document.getElementById('time-header');
-        const tbody = document.getElementById('schedule-body');
-        const addBtn = document.getElementById('add-btn');
-        const cancelBtn = document.getElementById('cancel-btn');
-
-        // --- Init ---
-        function init(){
-            hourValues.forEach(h=>{ const o=document.createElement('option'); o.value=h; o.textContent=(h<10?'0'+h:h)+':00'; startSel.appendChild(o); });
-            hourValues.forEach(h=>{ const o=document.createElement('option'); o.value=h+1; o.textContent=((h+1)<10?'0'+(h+1):(h+1))+':00'; endSel.appendChild(o); });
-            
-            startSel.addEventListener('change', ()=>{
-                const s = parseInt(startSel.value);
-                const e = parseInt(endSel.value);
-                if(e <= s) endSel.value = s+1;
-            });
-
-            while(timeHeader.children.length>1) timeHeader.removeChild(timeHeader.lastChild);
-            hours.forEach(h=>{const th=document.createElement('th'); th.textContent=h; timeHeader.appendChild(th);});
-
-            load();
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            initSelects();
+            initTable();
             render();
-        }
+        });
 
-        // --- Persistence ---
-        function save(){ localStorage.setItem('schedule-courses', JSON.stringify(courses)); }
-        function load(){ try{ courses = JSON.parse(localStorage.getItem('schedule-courses'))||[]; }catch(e){ courses = []; } }
-
-        // --- Core Logic ---
-        function findConflictsFor(course){
-            return courses.filter(c => {
-                if(c.id === course.id) return false;
-                if(c.day !== course.day) return false;
-                return (course.start < c.end && course.end > c.start);
-            }).map(c => c.id);
-        }
-
-        // --- Render ---
-        function render(){
-            tbody.innerHTML='';
+        function initSelects() {
+            const start = document.getElementById('c-start');
+            const end = document.getElementById('c-end');
             
-            courses.forEach(c => {
-                const conf = findConflictsFor(c);
-                c.conflict = conf.length > 0;
+            CONFIG.hours.forEach(h => {
+                if (h === 20) return; // Don't start at 20:00
+                let opt = new Option(`${h}:00`, h);
+                start.add(opt);
             });
 
-            days.forEach(day=>{
-                const tr=document.createElement('tr'); 
-                const tdDay=document.createElement('td'); 
-                tdDay.innerHTML=`<div style="font-weight:800;font-size:14px">${dayLabels[day]}</div>`; 
-                tdDay.style.verticalAlign='middle'; tdDay.style.textAlign='center'; 
+            const updateEnd = () => {
+                const sVal = parseInt(start.value);
+                end.innerHTML = '';
+                CONFIG.hours.forEach(h => {
+                    if (h > sVal) {
+                        let opt = new Option(`${h}:00`, h);
+                        end.add(opt);
+                    }
+                });
+                // Default duration 3 hours or max possible
+                end.value = Math.min(sVal + 3, 20);
+            };
+
+            start.addEventListener('change', updateEnd);
+            updateEnd();
+        }
+
+        function initTable() {
+            const header = document.getElementById('header-row');
+            CONFIG.hours.forEach(h => {
+                if(h === 20) return; // Don't show column for 20:00 start
+                let th = document.createElement('th');
+                th.textContent = `${h}:00`;
+                header.appendChild(th);
+            });
+
+            const tbody = document.getElementById('schedule-body');
+            CONFIG.days.forEach(day => {
+                let tr = document.createElement('tr');
+                
+                // Day Label
+                let tdDay = document.createElement('td');
+                tdDay.innerHTML = day === 'sat' || day === 'sun' 
+                    ? `<span style="color:#ef4444">${CONFIG.dayLabels[day]}</span>` 
+                    : CONFIG.dayLabels[day];
                 tr.appendChild(tdDay);
 
-                for(let i=0; i<hourValues.length; i++){
-                    const currentHour = hourValues[i];
-                    const cell=document.createElement('td'); 
-                    cell.style.position='relative';
-
-                    const dropLayer=document.createElement('div'); 
-                    dropLayer.className='drop-layer'; 
-                    const slot=document.createElement('div'); 
-                    slot.className='drop-slot'; 
-                    slot.dataset.day=day; 
-                    slot.dataset.hour=currentHour;
-                    slot.addEventListener('dragover', onDragOver);
-                    slot.addEventListener('dragleave', onDragLeave);
-                    slot.addEventListener('drop', onDrop);
-                    dropLayer.appendChild(slot);
-                    cell.appendChild(dropLayer);
-
-                    const container=document.createElement('div'); 
-                    container.className='stacked';
+                // Time Slots
+                for(let i=0; i<CONFIG.hours.length-1; i++) {
+                    let td = document.createElement('td');
+                    td.dataset.day = day;
+                    td.dataset.hour = CONFIG.hours[i];
+                    td.className = 'drop-zone';
                     
-                    const starting = courses.filter(c=>c.day===day && c.start===currentHour);
-                    
-                    const conflictingInSlot = courses.some(c => c.day===day && c.start <= currentHour && c.end > currentHour && c.conflict);
-                    if(conflictingInSlot){
-                        const overlay = document.createElement('div');
-                        overlay.className = 'overlay-conflict';
-                        cell.appendChild(overlay);
-                    }
+                    // Drag Events
+                    td.addEventListener('dragover', handleDragOver);
+                    td.addEventListener('dragleave', handleDragLeave);
+                    td.addEventListener('drop', handleDrop);
 
-                    if(starting.length > 0){
-                        starting.forEach(c=>{
-                            const len = c.end - c.start;
-                            const div=document.createElement('div'); 
-                            div.className='course-cell '+(c.type==='main'?'main-course':'backup-course');
-                            div.draggable = true; 
-                            div.dataset.id=c.id;
-                            
-                            let badge = c.conflict ? `<span class="conflict-badge">! ชนกัน</span>` : '';
-                            let secBadge = c.sec ? `<span class="sec-badge">Sec ${escapeHtml(c.sec)}</span>` : '';
-
-                            div.innerHTML = `
-                                <div style="display:flex;justify-content:space-between;align-items:start">
-                                    <div style="line-height:1.2">
-                                        ${escapeHtml(c.name)}${secBadge}${badge}
-                                        ${c.teacher?`<div style="font-weight:400;font-size:11px;color:rgba(0,0,0,0.6)">${escapeHtml(c.teacher)}</div>`:''}
-                                    </div>
-                                    <button class="btn-xs-del" style="border:none;background:none;color:#ef4444;cursor:pointer;font-weight:bold;padding:0 4px" title="ลบ">×</button>
-                                </div>
-                            `;
-                            
-                            div.addEventListener('dragstart', onDragStart);
-                            div.addEventListener('click', (e)=>{
-                                if(e.target.classList.contains('btn-xs-del')){
-                                    e.stopPropagation(); deleteCourse(c.id);
-                                } else {
-                                    startEdit(c.id);
-                                }
-                            });
-                            
-                            if(len > 1){
-                                div.style.width = `calc(${len * 100}% + ${(len-1)*2}px)`; 
-                                div.style.position = 'relative';
-                                div.style.zIndex = '20';
-                            }
-
-                            container.appendChild(div);
-                        });
-                    }
-                    cell.appendChild(container);
-                    tr.appendChild(cell);
+                    tr.appendChild(td);
                 }
                 tbody.appendChild(tr);
             });
-
-            renderSummary();
         }
 
-        function renderSummary(){ 
-            const main=document.getElementById('main-list'); 
-            const backup=document.getElementById('backup-list'); 
-            main.innerHTML=''; backup.innerHTML='';
-            document.getElementById('count-main').textContent = courses.filter(c=>c.type==='main').length;
-            document.getElementById('count-backup').textContent = courses.filter(c=>c.type==='backup').length;
-
-            const sorted = [...courses].sort((a,b)=>{ if(days.indexOf(a.day)!==days.indexOf(b.day)) return days.indexOf(a.day)-days.indexOf(b.day); return a.start-b.start; });
-            
-            sorted.forEach(c=>{
-                const div=document.createElement('div'); 
-                div.className='list-item';
-                div.innerHTML=`
-                    <div>
-                        <strong>${escapeHtml(c.name)}</strong> 
-                        ${c.sec ? `<span style="font-size:0.9em; background:#eee; padding:1px 4px; border-radius:4px; margin-left:4px">Sec ${escapeHtml(c.sec)}</span>` : ''}
-                        <span style="color:#6b7280;font-size:0.9em;margin-left:6px">
-                            ${dayLabels[c.day]} ${c.start}:00-${c.end}:00 
-                            ${c.teacher?`(${c.teacher})`:''}
-                        </span>
-                        ${c.conflict?'<span class="conflict-badge">Conflict</span>':''}
-                    </div>
-                    <div>
-                        <button onclick="startEdit('${c.id}')" style="border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;margin-right:4px">✏️</button>
-                        <button onclick="deleteCourse('${c.id}')" style="border:1px solid #fee2e2;background:#fff;color:red;border-radius:4px;cursor:pointer">✖</button>
-                    </div>
-                `;
-                if(c.type==='main') main.appendChild(div); else backup.appendChild(div);
-            });
+        // --- Core Logic ---
+        function getCourses() {
+            return state.data[state.currentPlan];
         }
 
-        // --- Drag & Drop Logic ---
-        function onDragStart(e){ 
-            e.dataTransfer.setData('text/plain', e.target.dataset.id); 
-            e.dataTransfer.effectAllowed='move'; 
-            setTimeout(()=>e.target.style.opacity='0.5',0);
+        function setCourses(courses) {
+            state.data[state.currentPlan] = courses;
+            saveData();
+            render();
         }
-        function onDragOver(e){ 
-            e.preventDefault(); 
-            e.dataTransfer.dropEffect='move'; 
-            e.currentTarget.classList.add('drag-over-active');
-        }
-        function onDragLeave(e){
-            e.currentTarget.classList.remove('drag-over-active');
-        }
-        function onDrop(e){ 
-            e.preventDefault(); 
-            e.currentTarget.classList.remove('drag-over-active');
-            const id = e.dataTransfer.getData('text/plain'); 
-            if(!id) return; 
-            
-            const slot = e.currentTarget; 
-            const newDay = slot.dataset.day; 
-            const newStart = parseInt(slot.dataset.hour,10);
 
-            const course = courses.find(c=>c.id===id); 
-            if(!course) return;
+        function saveData() {
+            localStorage.setItem('smart_reg_data', JSON.stringify(state.data));
+        }
 
-            const len = course.end - course.start; 
-            const proposedEnd = newStart + len;
-            
-            if(proposedEnd > 20){ 
-                showToast('วางไม่ได้! เลยเวลาเรียน (20:00)', 'error'); 
-                render(); 
-                return; 
+        function loadData() {
+            const saved = localStorage.getItem('smart_reg_data');
+            if (saved) {
+                state.data = JSON.parse(saved);
             }
-
-            course.day = newDay; 
-            course.start = newStart; 
-            course.end = proposedEnd;
-            
-            save(); 
-            render(); 
-            showToast('ย้ายวิชาเรียบร้อย', 'success'); 
         }
-        document.addEventListener('dragend', (e)=>{ if(e.target.classList.contains('course-cell')) render(); });
 
+        function switchPlan(planId) {
+            state.currentPlan = planId;
+            // Update Buttons
+            document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`button[onclick="switchPlan('${planId}')"]`).classList.add('active');
+            
+            // Update UI Label
+            const label = { planA: 'แผนหลัก (A)', planB: 'แผนสำรอง 1 (B)', planC: 'แผนสำรอง 2 (C)' };
+            document.getElementById('current-plan-label').textContent = label[planId];
+
+            resetForm();
+            render();
+            showToast(`เปลี่ยนเป็น ${label[planId]} เรียบร้อย`);
+        }
+
+        function stringToColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            // Use hash to pick from palette
+            const index = Math.abs(hash) % CONFIG.colors.length;
+            return CONFIG.colors[index];
+        }
+
+        // --- Rendering ---
+        function render() {
+            const courses = getCourses();
+            
+            // 1. Clear Table Slots
+            document.querySelectorAll('.drop-zone').forEach(td => {
+                td.innerHTML = '';
+                td.classList.remove('conflict-pattern');
+            });
+
+            // 2. Render Courses on Table
+            courses.forEach(c => {
+                const duration = c.end - c.start;
+                const color = stringToColor(c.name);
+                
+                // Find Target Cell
+                const selector = `.drop-zone[data-day="${c.day}"][data-hour="${c.start}"]`;
+                const cell = document.querySelector(selector);
+
+                if (cell) {
+                    const div = document.createElement('div');
+                    div.className = 'course-block';
+                    div.draggable = true;
+                    div.style.backgroundColor = color;
+                    // Calculate Width: (100% + 1px border) * duration - border spacing
+                    div.style.width = `calc(${duration * 100}% + ${duration}px - 5px)`;
+                    
+                    div.innerHTML = `
+                        <div class="course-title">${c.name}</div>
+                        <div class="course-detail">Sec ${c.sec} (${c.start}:00-${c.end}:00)</div>
+                        <button class="btn-delete-xs" onclick="deleteCourse('${c.id}', event)">×</button>
+                    `;
+
+                    div.dataset.id = c.id;
+                    div.addEventListener('dragstart', handleDragStart);
+                    div.addEventListener('click', (e) => {
+                        if(!e.target.classList.contains('btn-delete-xs')) editCourse(c.id);
+                    });
+
+                    // Conflict Detection Check
+                    if (isConflict(c, courses)) {
+                        div.classList.add('conflict-pattern');
+                        div.title = "เวลาเรียนชนกัน!";
+                        div.innerHTML += ` <i class="fa-solid fa-triangle-exclamation" style="color:yellow"></i>`;
+                    }
+
+                    cell.appendChild(div);
+                }
+            });
+
+            // 3. Render Side List
+            const list = document.getElementById('course-list');
+            list.innerHTML = '';
+            let totalCredits = 0;
+
+            // Sort by Day then Time
+            const sorted = [...courses].sort((a,b) => {
+                const dayDiff = CONFIG.days.indexOf(a.day) - CONFIG.days.indexOf(b.day);
+                if (dayDiff !== 0) return dayDiff;
+                return a.start - b.start;
+            });
+
+            if (sorted.length === 0) {
+                list.innerHTML = `<div style="text-align:center; color:#ccc; padding:30px;">ยังไม่มีวิชา<br>กดเพิ่มวิชาได้เลย</div>`;
+            } else {
+                sorted.forEach(c => {
+                    totalCredits += parseInt(c.credit || 0);
+                    const color = stringToColor(c.name);
+                    const item = document.createElement('div');
+                    item.className = 'course-list-item';
+                    item.style.borderLeftColor = color;
+                    item.innerHTML = `
+                        <div>
+                            <div style="font-weight:600; font-size:0.95rem;">${c.name}</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">
+                                ${CONFIG.dayLabels[c.day]} ${c.start}:00-${c.end}:00 | Sec ${c.sec} | ${c.credit} หน่วยกิต
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:4px;">
+                            <button class="btn-ghost" onclick="editCourse('${c.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-ghost" style="color:var(--danger)" onclick="deleteCourse('${c.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+            
+            document.getElementById('course-count').textContent = courses.length;
+            document.getElementById('total-credits').textContent = totalCredits;
+        }
+
+        function isConflict(course, allCourses) {
+            return allCourses.some(c => 
+                c.id !== course.id && 
+                c.day === course.day && 
+                ( (course.start < c.end && course.end > c.start) )
+            );
+        }
 
         // --- Actions ---
-        addBtn.addEventListener('click', ()=>{
-            const name = document.getElementById('course-name').value.trim();
-            const sec = document.getElementById('course-sec').value.trim();
-            const teacher = document.getElementById('teacher-name').value.trim();
-            const day = document.getElementById('day').value;
-            const start = parseInt(startSel.value,10);
-            const end = parseInt(endSel.value,10);
-            const type = document.querySelector('input[name="course-type"]:checked').value;
+        document.getElementById('add-btn').addEventListener('click', () => {
+            const name = document.getElementById('c-name').value.trim();
+            const sec = document.getElementById('c-sec').value;
+            const credit = document.getElementById('c-credit').value;
+            const teacher = document.getElementById('c-teacher').value;
+            const day = document.getElementById('c-day').value;
+            const start = parseInt(document.getElementById('c-start').value);
+            const end = parseInt(document.getElementById('c-end').value);
 
-            if(!name){ showToast('กรุณาระบุชื่อวิชา','error'); return; }
-            if(start>=end){ showToast('เวลาเริ่ม-จบ ไม่ถูกต้อง','error'); return; }
+            if (!name) return showToast('กรุณากรอกชื่อวิชา', 'error');
+            
+            const course = {
+                id: state.editingId || Date.now().toString(),
+                name, sec, credit, teacher, day, start, end
+            };
 
-            const id = editingId || ('c'+Date.now()+Math.random().toString(16).slice(2));
-            const newCourse = { id, name, sec, teacher, day, start, end, type };
-
-            if(editingId){
-                const idx = courses.findIndex(x=>x.id===editingId);
-                if(idx!==-1) courses[idx] = newCourse;
-                showToast('แก้ไขข้อมูลแล้ว', 'success');
+            let courses = getCourses();
+            if (state.editingId) {
+                const index = courses.findIndex(c => c.id === state.editingId);
+                courses[index] = course;
+                showToast('แก้ไขข้อมูลสำเร็จ');
             } else {
-                courses.push(newCourse);
-                showToast('เพิ่มวิชาแล้ว', 'success');
+                courses.push(course);
+                showToast('เพิ่มวิชาสำเร็จ');
             }
 
+            setCourses(courses);
             resetForm();
-            save();
-            render();
         });
 
-        function startEdit(id){
-            const c = courses.find(x=>x.id===id);
-            if(!c) return;
-            editingId = id;
-            document.getElementById('course-name').value = c.name;
-            document.getElementById('course-sec').value = c.sec || '';
-            document.getElementById('teacher-name').value = c.teacher||'';
-            document.getElementById('day').value = c.day;
-            startSel.value = c.start;
-            endSel.value = c.end;
-            document.querySelector(`input[name="course-type"][value="${c.type}"]`).checked = true;
+        function editCourse(id) {
+            const course = getCourses().find(c => c.id === id);
+            if (!course) return;
+
+            document.getElementById('c-name').value = course.name;
+            document.getElementById('c-sec').value = course.sec;
+            document.getElementById('c-credit').value = course.credit;
+            document.getElementById('c-teacher').value = course.teacher;
+            document.getElementById('c-day').value = course.day;
+            document.getElementById('c-start').value = course.start;
             
-            addBtn.textContent = 'บันทึกแก้ไข';
-            addBtn.className = 'btn'; 
-            addBtn.style.background = '#f59e0b'; 
-            cancelBtn.style.display = 'inline-block';
+            // Trigger change to update end options, then set value
+            const event = new Event('change');
+            document.getElementById('c-start').dispatchEvent(event);
+            document.getElementById('c-end').value = course.end;
+
+            state.editingId = id;
             
-            window.scrollTo({top:0, behavior:'smooth'});
+            const addBtn = document.getElementById('add-btn');
+            addBtn.innerHTML = '<i class="fa-solid fa-save"></i> บันทึก';
+            addBtn.style.backgroundColor = '#f59e0b';
+            document.getElementById('cancel-btn').style.display = 'inline-flex';
         }
 
-        function resetForm(){
-            editingId = null;
-            document.getElementById('course-name').value = '';
-            document.getElementById('course-sec').value = '';
-            document.getElementById('teacher-name').value = '';
-            document.getElementById('day').value = 'mon';
-            startSel.value = 8;
-            endSel.value = 9;
-            document.querySelector('input[value="main"]').checked = true;
+        function deleteCourse(id, event) {
+            if (event) event.stopPropagation();
+            if (!confirm('ต้องการลบวิชานี้?')) return;
             
-            addBtn.textContent = 'เพิ่มวิชา';
-            addBtn.style.background = ''; 
-            cancelBtn.style.display = 'none';
+            const courses = getCourses().filter(c => c.id !== id);
+            setCourses(courses);
+            if (state.editingId === id) resetForm();
         }
 
-        cancelBtn.addEventListener('click', resetForm);
-
-        function deleteCourse(id){
-            if(!confirm('ยืนยันการลบวิชานี้?')) return;
-            courses = courses.filter(c=>c.id!==id);
-            if(editingId === id) resetForm();
-            save();
-            render();
-            showToast('ลบวิชาเรียบร้อย', 'error');
+        function clearPlan() {
+            if (confirm('ยืนยันล้างตารางของแผนปัจจุบันทั้งหมด?')) {
+                setCourses([]);
+                showToast('ล้างตารางเรียบร้อย');
+            }
         }
 
-        document.getElementById('clear-schedule').addEventListener('click', ()=>{
-            if(!confirm('ต้องการล้างตารางทั้งหมดใช่หรือไม่?')) return;
-            courses = [];
-            resetForm();
-            save();
-            render();
-            showToast('ล้างตารางแล้ว', 'error');
-        });
+        document.getElementById('cancel-btn').addEventListener('click', resetForm);
 
+        function resetForm() {
+            state.editingId = null;
+            document.getElementById('c-name').value = '';
+            document.getElementById('c-sec').value = '';
+            document.getElementById('c-credit').value = '3';
+            document.getElementById('c-teacher').value = '';
+            
+            const addBtn = document.getElementById('add-btn');
+            addBtn.innerHTML = '<i class="fa-solid fa-check"></i> เพิ่มวิชา';
+            addBtn.style.backgroundColor = '';
+            document.getElementById('cancel-btn').style.display = 'none';
+        }
 
-        // --- Exports ---
-        function escapeHtml(s){ if(!s && s!==0) return ''; return String(s).replace(/[&<>"]/g, function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
+        // --- Drag & Drop ---
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.id);
+            e.dataTransfer.effectAllowed = 'move';
+        }
 
-        document.getElementById('export-json').addEventListener('click', ()=>{
-            const j=JSON.stringify(courses,null,2);
-            const blob=new Blob([j],{type:'application/json'});
-            const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='schedule.json'; a.click();
-            showToast('ดาวน์โหลด JSON แล้ว','success');
-        });
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
 
-        document.getElementById('import-json').addEventListener('click', ()=>document.getElementById('import-file').click());
-        document.getElementById('import-file').addEventListener('change', (e)=>{
-            const f=e.target.files[0]; if(!f) return;
-            const r=new FileReader(); r.onload=function(){
-                try{ 
-                    const p=JSON.parse(this.result); 
-                    if(Array.isArray(p)) { courses=p; save(); render(); showToast('นำเข้าข้อมูลสำเร็จ','success'); }
-                }catch(err){ showToast('ไฟล์ไม่ถูกต้อง','error'); }
-            }; r.readAsText(f); e.target.value='';
-        });
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
 
-        document.getElementById('export-csv').addEventListener('click', ()=>{
-            const head = ['ID','Name','Section','Teacher','Day','Start','End','Type'];
-            const rows = courses.map(c=>[c.id,`"${c.name}"`,`"${c.sec||''}"`,`"${c.teacher||''}"`,c.day,c.start,c.end,c.type].join(','));
-            const csv = [head.join(','),...rows].join('\r\n');
-            const blob=new Blob([csv],{type:'text/csv'});
-            const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='schedule.csv'; a.click();
-        });
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            const id = e.dataTransfer.getData('text/plain');
+            const courses = getCourses();
+            const course = courses.find(c => c.id === id);
 
-        document.getElementById('export-ical').addEventListener('click', ()=>{
-            let ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Schedule//EN'];
-            const now = new Date();
-            courses.forEach(c=>{
-                const dIdx = {mon:1,tue:2,wed:3,thu:4,fri:5}[c.day];
-                const diff = (dIdx + 7 - now.getDay()) % 7 || 7; 
-                const d = new Date(now); d.setDate(d.getDate()+diff);
-                const fmt = (dt) => dt.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
-                const startDt = new Date(d); startDt.setHours(c.start,0,0);
-                const endDt = new Date(d); endDt.setHours(c.end,0,0);
-                
-                ics.push('BEGIN:VEVENT');
-                ics.push(`SUMMARY:${c.name} ${c.sec ? '(Sec '+c.sec+')' : ''}`);
-                ics.push(`DTSTART:${fmt(startDt)}`);
-                ics.push(`DTEND:${fmt(endDt)}`);
-                ics.push(`DESCRIPTION:Teacher: ${c.teacher || '-'}`);
-                ics.push(`RRULE:FREQ=WEEKLY;COUNT=16`);
-                ics.push('END:VEVENT');
-            });
-            ics.push('END:VCALENDAR');
-            const blob=new Blob([ics.join('\r\n')],{type:'text/calendar'});
-            const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='schedule.ics'; a.click();
-        });
+            if (course) {
+                const newDay = e.currentTarget.dataset.day;
+                const newStart = parseInt(e.currentTarget.dataset.hour);
+                const duration = course.end - course.start;
 
-        document.getElementById('export-pdf').addEventListener('click', async ()=>{
-            showToast('กำลังสร้างรูปภาพ PDF...', 'info');
-            const el = document.getElementById('schedule-card');
-            const oldShadow = el.style.boxShadow; el.style.boxShadow='none';
+                if (newStart + duration > 20) {
+                    showToast('วางไม่ได้ เวลาเกิน 20:00 น.', 'error');
+                    return;
+                }
+
+                course.day = newDay;
+                course.start = newStart;
+                course.end = newStart + duration;
+                setCourses(courses);
+            }
+        }
+
+        // --- Export PDF ---
+        document.getElementById('export-btn').addEventListener('click', async () => {
+            const element = document.getElementById('schedule-capture-area');
+            const btn = document.getElementById('export-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังสร้าง...';
+            
             try {
-                const canvas = await html2canvas(el, {scale:2, backgroundColor:'#ffffff'});
-                const img = canvas.toDataURL('image/png');
+                const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+                const imgData = canvas.toDataURL('image/png');
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('l', 'pt', [canvas.width, canvas.height]);
-                pdf.addImage(img, 'PNG', 0, 0, canvas.width, canvas.height);
-                pdf.save('schedule.pdf');
-                showToast('บันทึก PDF เรียบร้อย', 'success');
-            } catch(e){ console.error(e); showToast('เกิดข้อผิดพลาด', 'error'); }
-            el.style.boxShadow = oldShadow;
+                
+                // Landscape A4
+                const pdf = new jsPDF('l', 'mm', 'a4');
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                
+                const imgProps = pdf.getImageProperties(imgData);
+                const pdfHeight = (imgProps.height * pageWidth) / imgProps.width;
+                
+                const y = (pageHeight - pdfHeight) / 2;
+                
+                pdf.addImage(imgData, 'PNG', 0, y, pageWidth, pdfHeight);
+                pdf.save(`MySchedule_${state.currentPlan}.pdf`);
+                showToast('ดาวน์โหลดสำเร็จ!');
+            } catch (err) {
+                console.error(err);
+                showToast('เกิดข้อผิดพลาดในการส่งออก', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+            }
         });
 
-        function showToast(msg,type='info'){
-            const t=document.createElement('div');
-            t.textContent=msg;
-            t.style.padding='10px 16px'; t.style.background='#fff'; t.style.borderRadius='8px';
-            t.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'; t.style.fontSize='14px';
-            t.style.borderLeft=`5px solid ${type==='error'?'#ef4444':(type==='success'?'#10b981':'#3b82f6')}`;
-            t.style.animation='fadeIn 0.3s';
-            document.getElementById('toast-wrap').appendChild(t);
-            setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2500);
+        // --- Toast Utility ---
+        function showToast(msg, type='success') {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            const icon = type === 'error' ? '<i class="fa-solid fa-circle-exclamation" style="color:#ef4444"></i>' : '<i class="fa-solid fa-circle-check" style="color:#10b981"></i>';
+            toast.innerHTML = `${icon} <span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
-        // Run
-        init();
     </script>
 </body>
 </html>
