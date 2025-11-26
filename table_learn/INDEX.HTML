@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Smart Scheduler Pro: วางแผนเรียน + สอบ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+
+    <style>
+        :root {
+            /* --- Light Mode (Default) --- */
+            --primary: #4f46e5;
+            --primary-light: #e0e7ff;
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --text: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+
+            /* Exam Colors (Light) */
+            --midterm-bg: #fff7ed; --midterm-text: #ea580c; --midterm-border: #fed7aa;
+            --final-bg: #fef2f2; --final-text: #dc2626; --final-border: #fecaca;
+        }
+
+        /* --- Dark Mode Overrides --- */
+        [data-theme="dark"] {
+            --primary: #818cf8; /* Lighter Indigo for dark bg */
+            --primary-light: #312e81;
+            --bg: #111827; /* Gray 900 */
+            --surface: #1f2937; /* Gray 800 */
+            --text: #f9fafb; /* Gray 50 */
+            --text-muted: #9ca3af; /* Gray 400 */
+            --border: #374151; /* Gray 700 */
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+
+            /* Exam Colors (Dark - Deep tone) */
+            --midterm-bg: #431407; --midterm-text: #fdba74; --midterm-border: #7c2d12;
+            --final-bg: #450a0a; --final-text: #fca5a5; --final-border: #7f1d1d;
+        }
+
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+            transition: background-color 0.3s, color 0.3s; /* Smooth transition */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .app-container {
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start;
+            flex: 1; /* Pushes footer down */
+            width: 100%;
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            grid-column: 1 / -1;
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--surface); padding: 16px 24px;
+            border-radius: var(--radius); box-shadow: var(--shadow);
+            border: 1px solid var(--border); flex-wrap: wrap; gap: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand h1 { margin: 0; font-size: 1.25rem; color: var(--primary); }
+
+        /* Plan Selector */
+        .plan-selector {
+            display: flex; background: var(--bg); padding: 4px; border-radius: 10px; border: 1px solid var(--border);
+        }
+        .plan-btn {
+            border: none; background: transparent; padding: 8px 16px;
+            border-radius: 8px; cursor: pointer; font-family: 'Prompt', sans-serif;
+            color: var(--text-muted); transition: 0.2s;
+        }
+        .plan-btn.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow); font-weight: 600; }
+
+        .action-group { display: flex; gap: 8px; align-items: center; }
+
+        h3 { margin: 0 0 16px 0; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text); }
+
+        /* Forms */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group.full { grid-column: 1 / -1; }
+        
+        label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.85rem; color: var(--text); }
+        input, select {
+            width: 100%; padding: 10px; border: 1px solid var(--border);
+            border-radius: 8px; font-family: 'Prompt', sans-serif;
+            background: var(--bg); color: var(--text); transition: 0.2s;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+
+        /* Type Radio Selector */
+        .type-selector {
+            display: flex; gap: 12px; background: var(--bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+        }
+        .radio-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; color: var(--text); }
+        .radio-label input { width: auto; margin: 0; }
+
+        /* Exam Section */
+        .exam-toggle {
+            background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--success);
+            padding: 10px; border-radius: 8px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; font-size: 0.9rem; font-weight: 500;
+        }
+        .exam-inputs { display: none; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; }
+        .exam-inputs.show { display: block; animation: fadeIn 0.3s; }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 16px; border: none; border-radius: 8px;
+            cursor: pointer; font-family: 'Prompt', sans-serif; font-weight: 600;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            transition: 0.2s;
+        }
+        .btn-primary { background: var(--primary); color: #fff; width: 100%; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: var(--bg); }
+        .btn-sm { font-size: 0.85rem; padding: 6px 12px; }
+        .btn-danger { color: var(--danger); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        /* Table */
+        .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; table-layout: fixed; }
+        th { background: var(--bg); color: var(--text-muted); padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.8rem; width: 8.33%; }
+        th:first-child { width: 60px; position: sticky; left: 0; background: var(--bg); z-index: 10; border-right: 1px solid var(--border); }
+        td { height: 60px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); position: relative; padding: 0; }
+        td:first-child { background: var(--surface); color: var(--text); font-weight: 600; text-align: center; position: sticky; left: 0; z-index: 10; border-right: 1px solid var(--border); vertical-align: middle;}
+
+        /* Course Block */
+        .course-block {
+            position: absolute; top: 2px; bottom: 2px; left: 2px; right: 2px;
+            border-radius: 6px; padding: 4px 6px; font-size: 0.7rem; color: #fff;
+            cursor: grab; box-shadow: 0 2px 4px rgba(0,0,0,0.2); overflow: hidden;
+            display: flex; flex-direction: column; line-height: 1.2; z-index: 5;
+        }
+        .course-block:hover { z-index: 20; transform: scale(1.02); box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
+        .course-block.minor-type { border: 2px dashed rgba(255,255,255,0.7); }
+        .conflict-pattern { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.2), rgba(0,0,0,0.2) 10px, transparent 10px, transparent 20px); border: 2px solid var(--danger); }
+        
+        .badge-type { display: inline-block; background: rgba(0,0,0,0.2); padding: 1px 4px; border-radius: 4px; font-size: 9px; margin-left: 4px; vertical-align: middle; }
+        .btn-del-xs { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.3); width: 16px; height: 16px; border-radius: 50%; color: #fff; border:none; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 10px;}
+        .course-block:hover .btn-del-xs { display: flex; }
+
+        /* Exam List Style */
+        .exam-item {
+            display: grid; grid-template-columns: 90px 1fr auto; 
+            padding: 12px; border-bottom: 1px solid var(--border); align-items: center; gap: 12px;
+            transition: background 0.2s; border-radius: 8px; margin-bottom: 8px; border: 1px solid transparent;
+        }
+        .exam-item:hover { background: var(--bg); border-color: var(--border); }
+        .exam-item:last-child { border-bottom: none; }
+        
+        .exam-date-box { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 8px; border-radius: 8px; text-align: center; line-height: 1.2; 
+            height: 100%; border: 1px solid transparent;
+        }
+        .exam-date-box strong { display: block; font-size: 1.4rem; line-height: 1; margin-top: 4px;}
+        .exam-badge { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; display: inline-block; width: 100%;}
+
+        /* Midterm & Final Dynamic Colors */
+        .is-midterm .exam-date-box { background: var(--midterm-bg); color: var(--midterm-text); border-color: var(--midterm-border); }
+        .is-midterm .exam-badge { background: rgba(255,255,255,0.5); color: inherit; }
+        
+        .is-final .exam-date-box { background: var(--final-bg); color: var(--final-text); border-color: var(--final-border); }
+        .is-final .exam-badge { background: rgba(255,255,255,0.5); color: inherit; }
+
+        .exam-details { display: flex; flex-direction: column; gap: 2px; }
+        .exam-name { font-weight: 600; font-size: 1rem; color: var(--text); }
+        .exam-time { font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+
+        .exam-conflict { border: 2px solid var(--danger) !important; background: rgba(239, 68, 68, 0.05) !important; }
+        .badge-conflict { background: var(--danger); color: white; padding: 4px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+
+        /* Credit Stats */
+        .credit-stat-box {
+            display: flex; gap: 10px; font-size: 0.8rem; background: var(--bg); padding: 8px; border-radius: 8px; margin-top: 5px; border: 1px solid var(--border);
+        }
+        .stat-item { flex: 1; text-align: center; }
+        .stat-item strong { display: block; font-size: 1.1em; color: var(--primary); }
+
+        @media (max-width: 1024px) { .app-container { grid-template-columns: 1fr; } }
+        
+        /* Toast */
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--surface); color: var(--text); padding: 12px 24px; border-radius: 8px; box-shadow: 0 10px 15px rgba(0,0,0,0.2); display: flex; gap: 10px; animation: slideUp 0.3s forwards; z-index: 9999; border: 1px solid var(--border); }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: auto; /* Pushes footer to bottom */
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="top-bar">
+            <div class="brand">
+                <i class="fa-solid fa-graduation-cap fa-xl" style="color:var(--primary)"></i>
+                <div>
+                    <h1 style="line-height:1; font-size:1.4rem;">Smart Scheduler Pro</h1>
+                    <small style="color:var(--text-muted)">วางแผนเรียน + ตารางสอบ</small>
+                </div>
+            </div>
+            
+            <div class="plan-selector">
+                <button class="plan-btn active" onclick="switchPlan('planA')">แผน A</button>
+                <button class="plan-btn" onclick="switchPlan('planB')">แผน B</button>
+                <button class="plan-btn" onclick="switchPlan('planC')">แผน C</button>
+            </div>
+
+            <div class="action-group">
+                <button class="btn btn-outline btn-sm" onclick="toggleTheme()" title="สลับโหมดมืด/สว่าง">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+                
+                <div style="width:1px; background:var(--border); height:24px; margin:0 4px;"></div>
+                
+                <input type="file" id="import-file" accept=".json" style="display:none" onchange="importFile(this)">
+                <button class="btn btn-outline btn-sm" onclick="document.getElementById('import-file').click()">
+                    <i class="fa-solid fa-file-import"></i> Import
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="exportJSON()">
+                    <i class="fa-solid fa-download"></i> JSON
+                </button>
+                <div style="width:1px; background:var(--border); height:24px; margin:0 4px;"></div>
+                <button class="btn btn-outline btn-sm" onclick="exportImage()">
+                    <i class="fa-solid fa-image"></i> รูปภาพ
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="exportPDF()">
+                    <i class="fa-solid fa-file-pdf"></i> PDF
+                </button>
+            </div>
+        </div>
+
+        <div>
+            <div class="card">
+                <h3><i class="fa-solid fa-calendar-plus"></i> เพิ่มรายวิชา</h3>
+                
+                <div class="form-group full">
+                    <label>รหัส/ชื่อวิชา</label>
+                    <input type="text" id="c-name" placeholder="Ex. 010063004 - Web Programming">
+                </div>
+
+                <div class="form-group full">
+                    <label>ประเภทวิชา</label>
+                    <div class="type-selector">
+                        <label class="radio-label">
+                            <input type="radio" name="c-type" value="major" checked> วิชาหลัก (Major)
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="c-type" value="minor"> วิชาเสรี (Elective)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Sec</label>
+                        <input type="text" id="c-sec" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label>หน่วยกิต</label>
+                        <input type="number" id="c-credit" value="3" min="0" max="10">
+                    </div>
+                </div>
+
+                <div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border); margin-bottom:12px;">
+                    <label style="color:var(--primary)"><i class="fa-regular fa-clock"></i> เวลาเรียนปกติ</label>
+                    <div class="form-grid">
+                        <div class="form-group" style="margin-bottom:0">
+                            <select id="c-day">
+                                <option value="mon">จันทร์</option><option value="tue">อังคาร</option>
+                                <option value="wed">พุธ</option><option value="thu">พฤหัส</option>
+                                <option value="fri">ศุกร์</option><option value="sat">เสาร์</option><option value="sun">อาทิตย์</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0; display:flex; gap:5px; align-items:center;">
+                            <select id="c-start"></select> - <select id="c-end"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exam-toggle" onclick="toggleExamForm()">
+                    <span><i class="fa-solid fa-calendar-check"></i> เพิ่มวันสอบ (Midterm / Final)</span>
+                    <i class="fa-solid fa-chevron-down" id="exam-chevron"></i>
+                </div>
+                <div class="exam-inputs" id="exam-form-area">
+                    <div class="form-group">
+                        <label>สอบกลางภาค (Midterm)</label>
+                        <div style="display:flex; gap:5px;">
+                            <input type="date" id="c-mid-date">
+                            <input type="time" id="c-mid-start" style="width:90px">
+                            <input type="time" id="c-mid-end" style="width:90px">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label>สอบปลายภาค (Final)</label>
+                        <div style="display:flex; gap:5px;">
+                            <input type="date" id="c-final-date">
+                            <input type="time" id="c-final-start" style="width:90px">
+                            <input type="time" id="c-final-end" style="width:90px">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                    <button class="btn btn-primary" id="add-btn"><i class="fa-solid fa-floppy-disk"></i> บันทึกวิชา</button>
+                    <button class="btn btn-danger btn-sm" id="cancel-btn" style="display:none; width:auto">ยกเลิก</button>
+                </div>
+            </div>
+
+            <div class="card" style="flex-grow:1">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3><i class="fa-solid fa-book-open"></i> รายวิชา (<span id="count-course">0</span>)</h3>
+                </div>
+                
+                <div class="credit-stat-box">
+                    <div class="stat-item">
+                        <strong id="credit-major">0</strong>
+                        <span style="color:var(--text-muted)">หน่วยกิตหลัก</span>
+                    </div>
+                    <div style="width:1px; background:var(--border);"></div>
+                    <div class="stat-item">
+                        <strong id="credit-minor">0</strong>
+                        <span style="color:var(--text-muted)">หน่วยกิตเสรี</span>
+                    </div>
+                    <div style="width:1px; background:var(--border);"></div>
+                    <div class="stat-item">
+                        <strong id="credit-total" style="color:var(--success)">0</strong>
+                        <span style="color:var(--text-muted)">รวม</span>
+                    </div>
+                </div>
+
+                <div id="course-list" style="max-height:300px; overflow-y:auto; font-size:0.9rem; margin-top:12px;"></div>
+                <button class="btn btn-outline btn-sm" onclick="clearPlan()" style="margin-top:10px; color:var(--danger); border-color:var(--danger); width:100%">
+                    <i class="fa-solid fa-trash"></i> ล้างข้อมูลแผนนี้
+                </button>
+            </div>
+        </div>
+
+        <div id="capture-area">
+            <div class="card" style="margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3><i class="fa-solid fa-calendar-days"></i> ตารางเรียน</h3>
+                    <div id="current-plan-badge" style="background:var(--primary-light); color:var(--primary); padding:4px 12px; border-radius:20px; font-weight:600;">แผน A</div>
+                </div>
+                <div class="table-container">
+                    <table id="schedule-table">
+                        <thead><tr id="header-row"><th>วัน/เวลา</th></tr></thead>
+                        <tbody id="schedule-body"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:8px; font-size:0.8rem; color:var(--text-muted); text-align:right;">
+                    <span style="display:inline-block; width:10px; height:10px; background:var(--border); margin-right:4px;"></span>= วิชาหลัก
+                    <span style="display:inline-block; width:10px; height:10px; border:2px dashed var(--text-muted); margin-left:8px; margin-right:4px;"></span>= วิชาเสรี
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fa-solid fa-scroll"></i> ตารางสอบ (Midterm & Final)</h3>
+                <div id="exam-list">
+                    <p style="color:var(--text-muted); text-align:center;">ยังไม่มีข้อมูลวันสอบ</p>
+                </div>
+            </div>
+        </div>
+        <footer>By Padory Youtube:@Padory.6742</footer>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const CONFIG = {
+            hours: [8,9,10,11,12,13,14,15,16,17,18,19,20],
+            days: ['mon','tue','wed','thu','fri','sat','sun'],
+            dayLabels: {mon:'จันทร์',tue:'อังคาร',wed:'พุธ',thu:'พฤหัส',fri:'ศุกร์',sat:'เสาร์',sun:'อาทิตย์'},
+            colors: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316']
+        };
+
+        let state = {
+            plan: 'planA',
+            data: { planA:[], planB:[], planC:[] },
+            editId: null,
+            theme: 'light'
+        };
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            initTheme();
+            initSelects();
+            initTable();
+            render();
+        });
+
+        // --- Theme Logic ---
+        function initTheme() {
+            const savedTheme = localStorage.getItem('smartRegPro_theme') || 'light';
+            state.theme = savedTheme;
+            applyTheme();
+        }
+
+        function toggleTheme() {
+            state.theme = state.theme === 'light' ? 'dark' : 'light';
+            localStorage.setItem('smartRegPro_theme', state.theme);
+            applyTheme();
+        }
+
+        function applyTheme() {
+            document.body.setAttribute('data-theme', state.theme);
+            const icon = document.getElementById('theme-icon');
+            if(state.theme === 'dark') {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        }
+
+        function initSelects() {
+            const s = document.getElementById('c-start'), e = document.getElementById('c-end');
+            CONFIG.hours.forEach(h => { if(h<20) s.add(new Option(`${h}:00`, h)); });
+            
+            s.addEventListener('change', () => {
+                e.innerHTML = '';
+                CONFIG.hours.forEach(h => { if(h > parseInt(s.value)) e.add(new Option(`${h}:00`, h)); });
+                e.value = Math.min(parseInt(s.value)+3, 20);
+            });
+            s.dispatchEvent(new Event('change'));
+        }
+
+        function initTable() {
+            const head = document.getElementById('header-row');
+            CONFIG.hours.forEach(h => { if(h<20) { let th=document.createElement('th'); th.textContent=`${h}:00`; head.appendChild(th); }});
+            
+            const body = document.getElementById('schedule-body');
+            CONFIG.days.forEach(d => {
+                let tr = document.createElement('tr');
+                let tdName = document.createElement('td');
+                tdName.innerHTML = (d==='sat'||d==='sun') ? `<span style="color:var(--danger)">${CONFIG.dayLabels[d]}</span>` : CONFIG.dayLabels[d];
+                tr.appendChild(tdName);
+                
+                for(let i=0; i<CONFIG.hours.length-1; i++) {
+                    let td = document.createElement('td');
+                    td.className = 'drop-zone';
+                    td.dataset.day = d; td.dataset.hour = CONFIG.hours[i];
+                    td.ondragover = e => { e.preventDefault(); e.currentTarget.style.background = 'var(--primary-light)'; };
+                    td.ondragleave = e => { e.currentTarget.style.background = ''; };
+                    td.ondrop = handleDrop;
+                    tr.appendChild(td);
+                }
+                body.appendChild(tr);
+            });
+        }
+
+        // --- Core Logic ---
+        function getCourses() { return state.data[state.plan]; }
+        function save() { localStorage.setItem('smartRegPro_data', JSON.stringify(state.data)); }
+        function loadData() { 
+            const d = localStorage.getItem('smartRegPro_data');
+            if(d) state.data = JSON.parse(d);
+        }
+
+        function switchPlan(p) {
+            state.plan = p;
+            document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`button[onclick="switchPlan('${p}')"]`).classList.add('active');
+            document.getElementById('current-plan-badge').innerText = p === 'planA' ? 'แผน A' : (p === 'planB' ? 'แผน B' : 'แผน C');
+            resetForm(); render();
+            showToast(`เปลี่ยนเป็น ${document.getElementById('current-plan-badge').innerText} แล้ว`);
+        }
+
+        function strColor(str) {
+            let h=0; for(let i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h << 5) - h);
+            return CONFIG.colors[Math.abs(h) % CONFIG.colors.length];
+        }
+
+        function toggleExamForm() {
+            document.getElementById('exam-form-area').classList.toggle('show');
+            document.getElementById('exam-chevron').classList.toggle('fa-rotate-180');
+        }
+
+        // --- Render ---
+        function render() {
+            const courses = getCourses();
+            
+            // 1. Clear Table
+            document.querySelectorAll('.drop-zone').forEach(td => { td.innerHTML = ''; td.classList.remove('conflict-pattern'); });
+
+            // 2. Render Courses
+            let majorCr = 0, minorCr = 0;
+
+            courses.forEach(c => {
+                // Calculate Credits
+                if(c.type === 'minor') minorCr += parseInt(c.credit||0);
+                else majorCr += parseInt(c.credit||0);
+
+                const dur = c.end - c.start;
+                const cell = document.querySelector(`.drop-zone[data-day="${c.day}"][data-hour="${c.start}"]`);
+                if(cell) {
+                    const div = document.createElement('div');
+                    div.className = `course-block ${c.type === 'minor' ? 'minor-type' : ''}`;
+                    div.style.background = strColor(c.name);
+                    div.style.width = `calc(${dur * 100}% + ${dur}px - 5px)`;
+                    div.draggable = true;
+                    div.dataset.id = c.id;
+                    
+                    // Add badge for Minor
+                    const typeBadge = c.type === 'minor' ? '<span class="badge-type">เสรี</span>' : '';
+                    
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:start">
+                            <strong>${c.name}</strong>
+                            ${typeBadge}
+                        </div>
+                        <span>Sec ${c.sec}</span>
+                        <button class="btn-del-xs" onclick="delCourse('${c.id}', event)">×</button>
+                    `;
+                    
+                    div.ondragstart = e => e.dataTransfer.setData('id', c.id);
+                    div.onclick = e => { if(!e.target.closest('.btn-del-xs')) editCourse(c.id); };
+                    
+                    if(checkConflict(c, courses)) {
+                        div.classList.add('conflict-pattern');
+                        div.title = 'เวลาเรียนชนกัน!';
+                    }
+                    cell.appendChild(div);
+                }
+            });
+
+            // 3. Render List & Stats
+            const list = document.getElementById('course-list');
+            list.innerHTML = '';
+            
+            courses.forEach(c => {
+                const div = document.createElement('div');
+                const badge = c.type === 'minor' ? '<span style="background:var(--bg); color:var(--text-muted); padding:2px 6px; border-radius:4px; font-size:0.7em;">เสรี</span>' : '<span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-size:0.7em;">หลัก</span>';
+                
+                div.style.cssText = `padding:8px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; border-left:4px solid ${strColor(c.name)}`;
+                div.innerHTML = `
+                    <div>
+                        <b>${c.name}</b> ${badge}<br>
+                        <span style="color:var(--text-muted);font-size:0.8em">${CONFIG.dayLabels[c.day]} ${c.start}:00-${c.end}:00 | ${c.credit} นก.</span>
+                    </div>
+                    <div><button class="btn btn-outline btn-sm" onclick="editCourse('${c.id}')"><i class="fa-solid fa-pen"></i></button></div>
+                `;
+                list.appendChild(div);
+            });
+
+            // Update Stats Display
+            document.getElementById('count-course').innerText = courses.length;
+            document.getElementById('credit-major').innerText = majorCr;
+            document.getElementById('credit-minor').innerText = minorCr;
+            document.getElementById('credit-total').innerText = majorCr + minorCr;
+
+            // 4. Render Exam List
+            renderExams(courses);
+        }
+
+        function renderExams(courses) {
+            const list = document.getElementById('exam-list');
+            list.innerHTML = '';
+            let exams = [];
+
+            // Extract exams from courses
+            courses.forEach(c => {
+                if(c.midDate) exams.push({ type:'Midterm', date:c.midDate, start:c.midStart, end:c.midEnd, course:c });
+                if(c.finalDate) exams.push({ type:'Final', date:c.finalDate, start:c.finalStart, end:c.finalEnd, course:c });
+            });
+
+            if(exams.length === 0) { list.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:10px;">ยังไม่มีข้อมูลวันสอบ</p>'; return; }
+
+            // Sort by date then time
+            exams.sort((a,b) => new Date(`${a.date}T${a.start}`) - new Date(`${b.date}T${b.start}`));
+
+            exams.forEach(e => {
+                // Check exam conflict
+                const isConflict = exams.some(other => 
+                    other !== e && other.date === e.date && 
+                    ((e.start < other.end && e.end > other.start))
+                );
+
+                const d = new Date(e.date);
+                const dateStr = d.toLocaleDateString('th-TH', {day:'numeric', month:'short'});
+                
+                // Color & Icon Logic
+                const isMid = e.type === 'Midterm';
+                const typeLabel = isMid ? 'Midterm' : 'Final';
+                // ICON CHANGED: fa-file-lines -> fa-file-pen for midterm
+                const typeIcon = isMid ? '<i class="fa-solid fa-file-pen"></i>' : '<i class="fa-solid fa-flag-checkered"></i>';
+                const rowClass = isMid ? 'is-midterm' : 'is-final';
+
+                const row = document.createElement('div');
+                row.className = `exam-item ${rowClass} ${isConflict ? 'exam-conflict' : ''}`;
+                
+                row.innerHTML = `
+                    <div class="exam-date-box">
+                        <span class="exam-badge">${typeIcon} ${typeLabel}</span>
+                        <strong>${dateStr}</strong>
+                    </div>
+                    <div class="exam-details">
+                        <div class="exam-name" style="color:${strColor(e.course.name)}">${e.course.name}</div>
+                        <div class="exam-time">
+                            <i class="fa-regular fa-clock"></i> ${e.start} - ${e.end}
+                            ${isConflict ? '<span class="badge-conflict"><i class="fa-solid fa-triangle-exclamation"></i> เวลาชนกัน!</span>' : ''}
+                        </div>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function checkConflict(c, all) {
+            return all.some(o => o.id !== c.id && o.day === c.day && (c.start < o.end && c.end > o.start));
+        }
+
+        // --- Actions ---
+        document.getElementById('add-btn').onclick = () => {
+            const name = document.getElementById('c-name').value.trim();
+            if(!name) return showToast('กรุณากรอกชื่อวิชา', 'error');
+
+            const obj = {
+                id: state.editId || Date.now().toString(),
+                name,
+                type: document.querySelector('input[name="c-type"]:checked').value, // Get Type
+                sec: document.getElementById('c-sec').value,
+                credit: document.getElementById('c-credit').value,
+                day: document.getElementById('c-day').value,
+                start: parseInt(document.getElementById('c-start').value),
+                end: parseInt(document.getElementById('c-end').value),
+                // Exams
+                midDate: document.getElementById('c-mid-date').value,
+                midStart: document.getElementById('c-mid-start').value,
+                midEnd: document.getElementById('c-mid-end').value,
+                finalDate: document.getElementById('c-final-date').value,
+                finalStart: document.getElementById('c-final-start').value,
+                finalEnd: document.getElementById('c-final-end').value,
+            };
+
+            let courses = getCourses();
+            if(state.editId) {
+                const idx = courses.findIndex(c => c.id === state.editId);
+                courses[idx] = obj;
+                showToast('แก้ไขวิชาสำเร็จ');
+            } else {
+                courses.push(obj);
+                showToast('เพิ่มวิชาสำเร็จ');
+            }
+            state.data[state.plan] = courses;
+            save(); resetForm(); render();
+        };
+
+        function editCourse(id) {
+            const c = getCourses().find(x => x.id === id);
+            if(!c) return;
+            document.getElementById('c-name').value = c.name;
+            
+            // Set Radio Type
+            if(c.type) {
+                document.querySelector(`input[name="c-type"][value="${c.type}"]`).checked = true;
+            } else {
+                document.querySelector(`input[name="c-type"][value="major"]`).checked = true;
+            }
+
+            document.getElementById('c-sec').value = c.sec;
+            document.getElementById('c-credit').value = c.credit;
+            document.getElementById('c-day').value = c.day;
+            document.getElementById('c-start').value = c.start;
+            document.getElementById('c-start').dispatchEvent(new Event('change'));
+            document.getElementById('c-end').value = c.end;
+            
+            // Exam data
+            document.getElementById('c-mid-date').value = c.midDate || '';
+            document.getElementById('c-mid-start').value = c.midStart || '';
+            document.getElementById('c-mid-end').value = c.midEnd || '';
+            document.getElementById('c-final-date').value = c.finalDate || '';
+            document.getElementById('c-final-start').value = c.finalStart || '';
+            document.getElementById('c-final-end').value = c.finalEnd || '';
+            
+            if(c.midDate || c.finalDate) {
+                 document.getElementById('exam-form-area').classList.add('show');
+                 document.getElementById('exam-chevron').classList.add('fa-rotate-180');
+            }
+
+            state.editId = id;
+            document.getElementById('add-btn').innerHTML = '<i class="fa-solid fa-save"></i> บันทึกแก้ไข';
+            document.getElementById('add-btn').style.background = 'var(--warning)';
+            document.getElementById('cancel-btn').style.display = 'inline-block';
+        }
+
+        function delCourse(id, e) {
+            if(e) e.stopPropagation();
+            if(confirm('ลบวิชานี้?')) {
+                state.data[state.plan] = getCourses().filter(c => c.id !== id);
+                if(state.editId === id) resetForm();
+                save(); render();
+            }
+        }
+
+        function resetForm() {
+            state.editId = null;
+            document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="time"]').forEach(i => i.value = '');
+            document.querySelector('input[name="c-type"][value="major"]').checked = true; // Reset radio
+            document.getElementById('c-credit').value = 3;
+            // ICON CHANGED: fa-check -> fa-floppy-disk in reset function
+            document.getElementById('add-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกวิชา';
+            document.getElementById('add-btn').style.background = '';
+            document.getElementById('cancel-btn').style.display = 'none';
+            document.getElementById('exam-form-area').classList.remove('show');
+            document.getElementById('exam-chevron').classList.remove('fa-rotate-180');
+        }
+
+        document.getElementById('cancel-btn').onclick = resetForm;
+        function clearPlan() { if(confirm('ล้างตารางแผนนี้ทั้งหมด?')) { state.data[state.plan] = []; save(); render(); showToast('ล้างตารางแล้ว'); }}
+
+        function handleDrop(e) {
+            e.preventDefault(); e.currentTarget.style.background = '';
+            const id = e.dataTransfer.getData('id');
+            let courses = getCourses();
+            let c = courses.find(x => x.id === id);
+            if(c) {
+                const newStart = parseInt(e.currentTarget.dataset.hour);
+                const dur = c.end - c.start;
+                if(newStart + dur <= 20) {
+                    c.day = e.currentTarget.dataset.day;
+                    c.start = newStart;
+                    c.end = newStart + dur;
+                    save(); render();
+                } else { showToast('เวลาเกิน 20:00 น.', 'error'); }
+            }
+        }
+
+        // --- Import / Export ---
+        function exportJSON() {
+            const blob = new Blob([JSON.stringify(state.data, null, 2)], {type:'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'smart_scheduler_data.json';
+            a.click();
+            showToast('Save JSON เรียบร้อย');
+        }
+
+        function importFile(input) {
+            const file = input.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if(json.planA) { // Simple validation
+                        state.data = json;
+                        save(); render();
+                        showToast('Import ข้อมูลสำเร็จ');
+                    } else throw new Error();
+                } catch { showToast('ไฟล์ JSON ไม่ถูกต้อง', 'error'); }
+            };
+            reader.readAsText(file);
+            input.value = ''; // Reset
+        }
+
+        async function exportImage() {
+            const el = document.getElementById('capture-area');
+            const btn = document.querySelector('button[onclick="exportImage()"]');
+            const oldHtml = btn.innerHTML; btn.innerHTML = '...';
+            
+            // Force light bg for export clarity
+            const originalBg = el.style.backgroundColor;
+            const originalColor = el.style.color;
+            if(state.theme === 'dark') {
+               // Optional: switch to light for clean export or keep as is.
+               // Keeping as is per WYSIWYG expectation, but setting explicit color to avoid transparent bg issues.
+            }
+
+            try {
+                const canvas = await html2canvas(el, {
+                    scale:2, 
+                    backgroundColor: state.theme === 'dark' ? '#1f2937' : '#f3f4f6'
+                });
+                const link = document.createElement('a');
+                link.download = `schedule_${state.plan}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                showToast('บันทึกรูปภาพแล้ว');
+            } catch(e) { showToast('เกิดข้อผิดพลาด', 'error'); }
+            btn.innerHTML = oldHtml;
+        }
+
+        async function exportPDF() {
+            const el = document.getElementById('capture-area');
+            const btn = document.querySelector('button[onclick="exportPDF()"]');
+            const oldHtml = btn.innerHTML; btn.innerHTML = '...';
+
+            try {
+                const canvas = await html2canvas(el, {
+                    scale:2, 
+                    backgroundColor: state.theme === 'dark' ? '#1f2937' : '#f3f4f6'
+                });
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new window.jspdf.jsPDF('l', 'mm', 'a4');
+                const w = pdf.internal.pageSize.getWidth();
+                const h = (canvas.height * w) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 10, w, h);
+                pdf.save(`schedule_${state.plan}.pdf`);
+                showToast('บันทึก PDF แล้ว');
+            } catch(e) { showToast('เกิดข้อผิดพลาด', 'error'); }
+            btn.innerHTML = oldHtml;
+        }
+
+        function showToast(msg, type='success') {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-exclamation':'fa-circle-check'}" style="color:${type==='error'?'#ef4444':'#10b981'}"></i> ${msg}`;
+            document.body.appendChild(t);
+            setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(), 300); }, 3000);
+        }
+    </script>
+</body>
+</html>
