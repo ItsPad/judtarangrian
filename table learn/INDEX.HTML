@@ -158,20 +158,37 @@
         .btn-del-xs { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.3); width: 16px; height: 16px; border-radius: 50%; color: #fff; border:none; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 10px;}
         .course-block:hover .btn-del-xs { display: flex; }
 
-        /* Exam List Style */
+        /* --- Exam List Improved Style --- */
         .exam-item {
-            display: grid; grid-template-columns: 80px 1fr auto; 
-            padding: 10px; border-bottom: 1px solid var(--border); align-items: center;
+            display: grid; grid-template-columns: 90px 1fr auto; 
+            padding: 12px; border-bottom: 1px solid var(--border); align-items: center; gap: 12px;
+            transition: background 0.2s; border-radius: 8px; margin-bottom: 8px; border: 1px solid transparent;
         }
-        .exam-item:last-child { border-bottom: none; }
+        .exam-item:hover { background: #f9fafb; border-color: var(--border); }
+        
         .exam-date-box { 
-            background: #f0f9ff; color: var(--primary); padding: 6px; 
-            border-radius: 6px; text-align: center; line-height: 1.2; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 8px; border-radius: 8px; text-align: center; line-height: 1.2; 
+            height: 100%; border: 1px solid transparent;
         }
-        .exam-date-box strong { display: block; font-size: 1.1rem; }
-        .exam-details { padding-left: 12px; }
-        .exam-conflict { background: #fef2f2; border: 1px solid #fecaca; }
-        .badge-conflict { background: var(--danger); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; }
+        .exam-date-box strong { display: block; font-size: 1.4rem; line-height: 1; margin-top: 4px;}
+        .exam-badge { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; display: inline-block; width: 100%;}
+
+        /* Midterm Style */
+        .is-midterm .exam-date-box { background: #fff7ed; color: #ea580c; border-color: #fed7aa; }
+        .is-midterm .exam-badge { background: #ffedd5; color: #c2410c; }
+        
+        /* Final Style */
+        .is-final .exam-date-box { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+        .is-final .exam-badge { background: #fee2e2; color: #b91c1c; }
+
+        .exam-details { display: flex; flex-direction: column; gap: 2px; }
+        .exam-name { font-weight: 600; font-size: 1rem; color: var(--text); }
+        .exam-time { font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+
+        .exam-conflict { background: #fff1f2 !important; border: 1px solid #fda4af !important; }
+        .badge-conflict { background: var(--danger); color: white; padding: 4px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+
 
         /* Credit Stats */
         .credit-stat-box {
@@ -547,18 +564,26 @@
 
                 const d = new Date(e.date);
                 const dateStr = d.toLocaleDateString('th-TH', {day:'numeric', month:'short'});
+                
+                // Color & Icon Logic
+                const isMid = e.type === 'Midterm';
+                const typeLabel = isMid ? 'Midterm' : 'Final';
+                const typeIcon = isMid ? '<i class="fa-solid fa-file-lines"></i>' : '<i class="fa-solid fa-flag-checkered"></i>';
+                const rowClass = isMid ? 'is-midterm' : 'is-final';
+
                 const row = document.createElement('div');
-                row.className = `exam-item ${isConflict ? 'exam-conflict' : ''}`;
+                row.className = `exam-item ${rowClass} ${isConflict ? 'exam-conflict' : ''}`;
+                
                 row.innerHTML = `
                     <div class="exam-date-box">
-                        <small>${e.type}</small>
+                        <span class="exam-badge">${typeIcon} ${typeLabel}</span>
                         <strong>${dateStr}</strong>
                     </div>
                     <div class="exam-details">
-                        <div style="font-weight:600; color:${strColor(e.course.name)}">${e.course.name}</div>
-                        <div style="font-size:0.85rem; color:#666;">
+                        <div class="exam-name" style="color:${strColor(e.course.name)}">${e.course.name}</div>
+                        <div class="exam-time">
                             <i class="fa-regular fa-clock"></i> ${e.start} - ${e.end}
-                            ${isConflict ? '<span class="badge-conflict">เวลาชนกัน!</span>' : ''}
+                            ${isConflict ? '<span class="badge-conflict"><i class="fa-solid fa-triangle-exclamation"></i> เวลาชนกัน!</span>' : ''}
                         </div>
                     </div>
                 `;
