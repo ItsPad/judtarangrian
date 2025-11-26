@@ -3,45 +3,52 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Smart Scheduler Pro: วางแผนเรียน + สอบ</title>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Smart Scheduler Pro v2: วางแผนเรียน + สอบ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
-
     <style>
         :root {
-            /* --- Light Mode (Default) --- */
-            --primary: #4f46e5;
+            /* --- Light Mode (Default - Modern & Clean) --- */
+            --primary: #6366f1; /* Indigo 500 */
+            --primary-hover: #4f46e5;
             --primary-light: #e0e7ff;
-            --bg: #f3f4f6;
+            --bg: #f8fafc; /* Slate 50 */
             --surface: #ffffff;
-            --text: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --radius: 12px;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --surface-alt: #f1f5f9; /* Slate 100 */
+            --text: #0f172a; /* Slate 900 */
+            --text-muted: #64748b; /* Slate 500 */
+            --border: #e2e8f0; /* Slate 200 */
+            --radius: 16px; /* More rounded */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
             
             --danger: #ef4444;
             --warning: #f59e0b;
             --success: #10b981;
 
-            /* Exam Colors (Light) */
-            --midterm-bg: #fff7ed; --midterm-text: #ea580c; --midterm-border: #fed7aa;
-            --final-bg: #fef2f2; --final-text: #dc2626; --final-border: #fecaca;
+            /* Exam Colors */
+            --midterm-bg: #fff7ed; --midterm-text: #c2410c; --midterm-border: #ffedd5;
+            --final-bg: #fef2f2; --final-text: #b91c1c; --final-border: #fee2e2;
         }
 
         /* --- Dark Mode Overrides --- */
         [data-theme="dark"] {
-            --primary: #818cf8; /* Lighter Indigo for dark bg */
-            --primary-light: #312e81;
-            --bg: #111827; /* Gray 900 */
-            --surface: #1f2937; /* Gray 800 */
-            --text: #f9fafb; /* Gray 50 */
-            --text-muted: #9ca3af; /* Gray 400 */
-            --border: #374151; /* Gray 700 */
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --primary: #818cf8; /* Indigo 400 */
+            --primary-hover: #a5b4fc;
+            --primary-light: rgba(99, 102, 241, 0.2);
+            --bg: #0f172a; /* Slate 900 */
+            --surface: #1e293b; /* Slate 800 */
+            --surface-alt: #334155; /* Slate 700 */
+            --text: #f1f5f9; /* Slate 100 */
+            --text-muted: #94a3b8; /* Slate 400 */
+            --border: #334155; /* Slate 700 */
+            --shadow-sm: none;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
 
-            /* Exam Colors (Dark - Deep tone) */
+            /* Exam Colors (Dark) */
             --midterm-bg: #431407; --midterm-text: #fdba74; --midterm-border: #7c2d12;
             --final-bg: #450a0a; --final-text: #fca5a5; --final-border: #7f1d1d;
         }
@@ -49,13 +56,13 @@
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         
         body {
-            font-family: 'Prompt', sans-serif;
+            font-family: 'Noto Sans Thai', ui-sans-serif, system-ui, -apple-system, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
             padding: 20px;
             font-size: 14px;
-            transition: background-color 0.3s, color 0.3s; /* Smooth transition */
+            transition: background-color 0.3s, color 0.3s;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
@@ -64,12 +71,14 @@
         /* Layout */
         .app-container {
             max-width: 1400px; margin: 0 auto;
-            display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start;
-            flex: 1; /* Pushes footer down */
-            width: 100%;
+            display: grid; 
+            /* Changed layout: Sidebar is narrower */
+            grid-template-columns: 320px 1fr; 
+            gap: 24px; align-items: start;
+            flex: 1; width: 100%;
         }
 
-        /* Card */
+        /* Card - Modernized */
         .card {
             background: var(--surface);
             border-radius: var(--radius);
@@ -77,170 +86,328 @@
             box-shadow: var(--shadow);
             border: 1px solid var(--border);
             margin-bottom: 20px;
-            transition: background-color 0.3s, border-color 0.3s;
+            transition: all 0.3s ease;
         }
 
-        /* Top Bar */
+        /* Top Bar - Cleaner */
         .top-bar {
             grid-column: 1 / -1;
             display: flex; justify-content: space-between; align-items: center;
             background: var(--surface); padding: 16px 24px;
             border-radius: var(--radius); box-shadow: var(--shadow);
-            border: 1px solid var(--border); flex-wrap: wrap; gap: 10px;
-            transition: background-color 0.3s;
+            border: 1px solid var(--border); flex-wrap: wrap; gap: 16px;
         }
         
         .brand { display: flex; align-items: center; gap: 12px; }
-        .brand h1 { margin: 0; font-size: 1.25rem; color: var(--primary); }
+        .brand h1 { margin: 0; font-size: 1.35rem; color: var(--primary); font-weight: 700; }
 
-        /* Plan Selector */
+        /* Plan Selector - Pill Style */
         .plan-selector {
-            display: flex; background: var(--bg); padding: 4px; border-radius: 10px; border: 1px solid var(--border);
+            display: flex; background: var(--surface-alt); padding: 4px; border-radius: 50px; border: 1px solid var(--border);
         }
         .plan-btn {
-            border: none; background: transparent; padding: 8px 16px;
-            border-radius: 8px; cursor: pointer; font-family: 'Prompt', sans-serif;
+            border: none; background: transparent; padding: 8px 20px;
+            border-radius: 50px; cursor: pointer; font-family: inherit; font-weight: 500;
             color: var(--text-muted); transition: 0.2s;
         }
-        .plan-btn.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow); font-weight: 600; }
+        .plan-btn.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); font-weight: 600; }
 
         .action-group { display: flex; gap: 8px; align-items: center; }
 
-        h3 { margin: 0 0 16px 0; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text); }
+        h3 { margin: 0 0 16px 0; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; color: var(--text); }
+
+        /* --- NEW MODAL Form Styles --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+            backdrop-filter: blur(4px); /* Glass effect */
+            align-items: center; justify-content: center;
+            padding: 20px;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal.show { display: flex; opacity: 1; }
+        
+        .modal-content {
+            background-color: var(--surface);
+            border-radius: var(--radius); box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            width: 100%; max-width: 550px;
+            max-height: 90vh; overflow-y: auto;
+            transform: translateY(20px); transition: transform 0.3s ease;
+        }
+        .modal.show .modal-content { transform: translateY(0); }
+
+        .modal-header {
+            padding: 16px 24px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h3 { margin: 0; }
+        .close-modal-btn { background: transparent; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
+
+        .modal-body { padding: 24px; }
+        .modal-footer {
+            padding: 16px 24px; border-top: 1px solid var(--border);
+            display: flex; justify-content: flex-end; gap: 12px; background: var(--surface-alt); border-radius: 0 0 var(--radius) var(--radius);
+        }
 
         /* Forms */
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .form-group { margin-bottom: 12px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { margin-bottom: 16px; }
         .form-group.full { grid-column: 1 / -1; }
         
-        label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.85rem; color: var(--text); }
-        input, select {
-            width: 100%; padding: 10px; border: 1px solid var(--border);
-            border-radius: 8px; font-family: 'Prompt', sans-serif;
+        label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; color: var(--text); }
+        input[type="text"], input[type="number"], input[type="date"], input[type="time"], select {
+            width: 100%; padding: 12px; border: 1px solid var(--border);
+            border-radius: 10px; font-family: inherit; font-size: 0.95rem;
             background: var(--bg); color: var(--text); transition: 0.2s;
         }
-        input:focus, select:focus { outline: none; border-color: var(--primary); }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        
+        /* New Color Picker */
+        input[type="color"] {
+            -webkit-appearance: none; border: 1px solid var(--border); padding: 4px; border-radius: 8px; width: 100%; height: 45px; cursor: pointer; background: var(--bg);
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
 
-        /* Type Radio Selector */
+
+        /* Type Radio Selector - Modernized */
         .type-selector {
-            display: flex; gap: 12px; background: var(--bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+            display: flex; gap: 4px; background: var(--surface-alt); padding: 6px; border-radius: 10px; border: 1px solid var(--border);
         }
-        .radio-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; color: var(--text); }
-        .radio-label input { width: auto; margin: 0; }
+        .radio-label {
+            flex: 1; text-align: center; padding: 8px; cursor: pointer; font-size: 0.9rem; color: var(--text-muted);
+            border-radius: 8px; transition: 0.2s; font-weight: 500; position: relative;
+        }
+        .radio-label input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+        .radio-label:has(input:checked) { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
 
-        /* Exam Section */
-        .exam-toggle {
-            background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--success);
-            padding: 10px; border-radius: 8px; cursor: pointer;
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 10px; font-size: 0.9rem; font-weight: 500;
+
+        /* Exam Section inside Modal */
+        .exam-section-title {
+            font-weight: 600; margin-top: 20px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); color: var(--text);
         }
-        .exam-inputs { display: none; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; }
-        .exam-inputs.show { display: block; animation: fadeIn 0.3s; }
 
         /* Buttons */
         .btn {
-            padding: 10px 16px; border: none; border-radius: 8px;
-            cursor: pointer; font-family: 'Prompt', sans-serif; font-weight: 600;
-            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-            transition: 0.2s;
+            padding: 12px 20px; border: none; border-radius: 10px;
+            cursor: pointer; font-family: inherit; font-weight: 600;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            transition: 0.2s; font-size: 0.95rem;
         }
-        .btn-primary { background: var(--primary); color: #fff; width: 100%; }
-        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-        .btn-outline:hover { background: var(--bg); }
-        .btn-sm { font-size: 0.85rem; padding: 6px 12px; }
-        .btn-danger { color: var(--danger); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .btn-outline:hover { background: var(--surface-alt); border-color: var(--text-muted); }
+        .btn-sm { font-size: 0.85rem; padding: 8px 14px; }
+        .btn-danger-soft { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+        .btn-danger-soft:hover { background: rgba(239, 68, 68, 0.2); }
 
-        /* Table */
-        .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; table-layout: fixed; }
-        th { background: var(--bg); color: var(--text-muted); padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.8rem; width: 8.33%; }
-        th:first-child { width: 60px; position: sticky; left: 0; background: var(--bg); z-index: 10; border-right: 1px solid var(--border); }
-        td { height: 60px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); position: relative; padding: 0; }
-        td:first-child { background: var(--surface); color: var(--text); font-weight: 600; text-align: center; position: sticky; left: 0; z-index: 10; border-right: 1px solid var(--border); vertical-align: middle;}
+        /* Table - Modernized */
+        .table-container { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 800px; table-layout: fixed; }
+        th { background: var(--surface-alt); color: var(--text-muted); padding: 12px; font-size: 0.85rem; font-weight: 600; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+        th:first-child { width: 70px; position: sticky; left: 0; z-index: 10; }
+        td { height: 65px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); position: relative; padding: 0; transition: background 0.2s; }
+        td:first-child { background: var(--surface-alt); color: var(--text); font-weight: 600; text-align: center; position: sticky; left: 0; z-index: 10; vertical-align: middle; font-size: 0.9rem;}
+        .drop-zone:hover { background-color: var(--surface-alt); }
 
-        /* Course Block */
+        /* Course Block - Modernized */
         .course-block {
-            position: absolute; top: 2px; bottom: 2px; left: 2px; right: 2px;
-            border-radius: 6px; padding: 4px 6px; font-size: 0.7rem; color: #fff;
-            cursor: grab; box-shadow: 0 2px 4px rgba(0,0,0,0.2); overflow: hidden;
-            display: flex; flex-direction: column; line-height: 1.2; z-index: 5;
+            position: absolute; top: 4px; bottom: 4px; left: 4px; right: 4px;
+            border-radius: 8px; padding: 6px 8px; font-size: 0.75rem; color: #fff;
+            cursor: grab; box-shadow: var(--shadow-sm); overflow: hidden;
+            display: flex; flex-direction: column; line-height: 1.3; z-index: 5;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent; /* Prepare for border */
         }
-        .course-block:hover { z-index: 20; transform: scale(1.02); box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
-        .course-block.minor-type { border: 2px dashed rgba(255,255,255,0.7); }
-        .conflict-pattern { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.2), rgba(0,0,0,0.2) 10px, transparent 10px, transparent 20px); border: 2px solid var(--danger); }
+        .course-block:hover { z-index: 20; transform: translateY(-2px) scale(1.02); box-shadow: var(--shadow); }
+        .course-block.minor-type { border-color: rgba(255,255,255,0.5); border-style: dashed; }
+        .conflict-pattern { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px); border: 2px solid var(--danger) !important; }
         
-        .badge-type { display: inline-block; background: rgba(0,0,0,0.2); padding: 1px 4px; border-radius: 4px; font-size: 9px; margin-left: 4px; vertical-align: middle; }
-        .btn-del-xs { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.3); width: 16px; height: 16px; border-radius: 50%; color: #fff; border:none; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 10px;}
+        .course-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+        .course-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 16px; font-size: 0.8rem;}
+        .badge-type { background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .btn-del-xs { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.2); width: 20px; height: 20px; border-radius: 50%; color: #fff; border:none; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 12px; transition: 0.2s;}
+        .btn-del-xs:hover { background: rgba(0,0,0,0.4); }
         .course-block:hover .btn-del-xs { display: flex; }
 
-        /* Exam List Style */
+        /* Exam List Style - Modernized */
         .exam-item {
-            display: grid; grid-template-columns: 90px 1fr auto; 
-            padding: 12px; border-bottom: 1px solid var(--border); align-items: center; gap: 12px;
-            transition: background 0.2s; border-radius: 8px; margin-bottom: 8px; border: 1px solid transparent;
+            display: grid; grid-template-columns: 100px 1fr auto; 
+            padding: 16px; border-bottom: 1px solid var(--border); align-items: center; gap: 16px;
+            transition: background 0.2s; border-radius: var(--radius); margin-bottom: 10px; border: 1px solid var(--border); background: var(--surface);
         }
-        .exam-item:hover { background: var(--bg); border-color: var(--border); }
-        .exam-item:last-child { border-bottom: none; }
+        .exam-item:hover { box-shadow: var(--shadow); border-color: var(--primary-light); }
         
         .exam-date-box { 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 8px; border-radius: 8px; text-align: center; line-height: 1.2; 
+            padding: 10px; border-radius: 10px; text-align: center; line-height: 1.2; 
             height: 100%; border: 1px solid transparent;
         }
-        .exam-date-box strong { display: block; font-size: 1.4rem; line-height: 1; margin-top: 4px;}
-        .exam-badge { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; display: inline-block; width: 100%;}
+        .exam-date-box strong { display: block; font-size: 1.5rem; line-height: 1; margin-top: 6px; font-weight: 700;}
+        .exam-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 4px 8px; border-radius: 6px; display: inline-block; width: 100%;}
 
-        /* Midterm & Final Dynamic Colors */
         .is-midterm .exam-date-box { background: var(--midterm-bg); color: var(--midterm-text); border-color: var(--midterm-border); }
-        .is-midterm .exam-badge { background: rgba(255,255,255,0.5); color: inherit; }
+        .is-midterm .exam-badge { background: rgba(255,255,255,0.6); color: inherit; }
         
         .is-final .exam-date-box { background: var(--final-bg); color: var(--final-text); border-color: var(--final-border); }
-        .is-final .exam-badge { background: rgba(255,255,255,0.5); color: inherit; }
+        .is-final .exam-badge { background: rgba(255,255,255,0.6); color: inherit; }
 
-        .exam-details { display: flex; flex-direction: column; gap: 2px; }
-        .exam-name { font-weight: 600; font-size: 1rem; color: var(--text); }
-        .exam-time { font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .exam-details { display: flex; flex-direction: column; gap: 4px; }
+        .exam-name { font-weight: 600; font-size: 1.05rem; color: var(--text); display: flex; align-items: center; gap: 8px;}
+        .exam-time { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
 
         .exam-conflict { border: 2px solid var(--danger) !important; background: rgba(239, 68, 68, 0.05) !important; }
-        .badge-conflict { background: var(--danger); color: white; padding: 4px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+        .badge-conflict { background: var(--danger); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3); }
 
         /* Credit Stats */
         .credit-stat-box {
-            display: flex; gap: 10px; font-size: 0.8rem; background: var(--bg); padding: 8px; border-radius: 8px; margin-top: 5px; border: 1px solid var(--border);
+            display: flex; gap: 0; font-size: 0.9rem; background: var(--surface-alt); padding: 12px; border-radius: var(--radius); margin-top: 16px; border: 1px solid var(--border);
         }
-        .stat-item { flex: 1; text-align: center; }
-        .stat-item strong { display: block; font-size: 1.1em; color: var(--primary); }
+        .stat-item { flex: 1; text-align: center; padding: 0 10px; }
+        .stat-item strong { display: block; font-size: 1.25em; color: var(--text); font-weight: 700; }
+        .stat-divider { width: 1px; background: var(--border); }
 
-        @media (max-width: 1024px) { .app-container { grid-template-columns: 1fr; } }
+        /* Course List Sidebar */
+        .course-list-item {
+            padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 10px; background: var(--surface); transition: 0.2s;
+            border-left-width: 6px; /* Thicker color indicator */
+        }
+        .course-list-item:hover { box-shadow: var(--shadow-sm); border-color: var(--primary-light); }
+
+        @media (max-width: 1024px) { .app-container { grid-template-columns: 1fr; } .top-bar { flex-direction: column; align-items: stretch; } .action-group { justify-content: center; } }
         
         /* Toast */
-        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--surface); color: var(--text); padding: 12px 24px; border-radius: 8px; box-shadow: 0 10px 15px rgba(0,0,0,0.2); display: flex; gap: 10px; animation: slideUp 0.3s forwards; z-index: 9999; border: 1px solid var(--border); }
+        .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface); color: var(--text); padding: 16px 24px; border-radius: 12px; box-shadow: var(--shadow-lg); display: flex; gap: 12px; animation: slideUp 0.3s forwards; z-index: 9999; border: 1px solid var(--border); font-weight: 500; align-items: center;}
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 20px 0;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-top: auto; /* Pushes footer to bottom */
+        /* Conflict Warning Message in Modal */
+        #conflict-warning {
+            display: none; background-color: rgba(239, 68, 68, 0.1); color: var(--danger);
+            padding: 12px; border-radius: 8px; margin-bottom: 16px; font-weight: 500; align-items: center; gap: 8px; border: 1px solid rgba(239, 68, 68, 0.2);
         }
+
+        footer { text-align: center; padding: 24px 0; color: var(--text-muted); font-size: 0.85rem; margin-top: auto; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
+    <div id="course-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title"><i class="fa-solid fa-calendar-plus"></i> เพิ่มรายวิชา</h3>
+                <button class="close-modal-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="conflict-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i> <span>เวลาเรียนชนกับวิชาอื่นในแผนนี้!</span>
+                </div>
+
+                <div class="form-group">
+                    <label>รหัส/ชื่อวิชา <span style="color:var(--danger)">*</span></label>
+                    <input type="text" id="c-name" placeholder="Ex. 010063004 - Web Programming">
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>ประเภทวิชา</label>
+                        <div class="type-selector">
+                            <label class="radio-label">
+                                <input type="radio" name="c-type" value="major" checked> วิชาหลัก
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="c-type" value="minor"> วิชาเสรี
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                         <label>สีประจำวิชา</label>
+                        <input type="color" id="c-color" value="#6366f1">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>กลุ่มเรียน (Sec)</label>
+                        <input type="text" id="c-sec" placeholder="Ex. 1">
+                    </div>
+                    <div class="form-group">
+                        <label>หน่วยกิต</label>
+                        <input type="number" id="c-credit" value="3" min="0" max="10">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>ห้องเรียน (Optional)</label>
+                        <input type="text" id="c-location" placeholder="Ex. 1201 / ออนไลน์">
+                    </div>
+                    <div class="form-group">
+                        <label>อาจารย์ผู้สอน (Optional)</label>
+                        <input type="text" id="c-instructor" placeholder="Ex. ดร.สมชาย">
+                    </div>
+                </div>
+
+                <div style="background:var(--surface-alt); padding:16px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
+                    <label style="color:var(--primary); font-size:1rem;"><i class="fa-regular fa-clock"></i> เวลาเรียนปกติ <span style="color:var(--danger)">*</span></label>
+                    <div class="form-grid">
+                        <div class="form-group" style="margin-bottom:0">
+                            <label style="font-size:0.8rem">วัน</label>
+                            <select id="c-day">
+                                <option value="mon">จันทร์</option><option value="tue">อังคาร</option>
+                                <option value="wed">พุธ</option><option value="thu">พฤหัส</option>
+                                <option value="fri">ศุกร์</option><option value="sat">เสาร์</option><option value="sun">อาทิตย์</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                             <label style="font-size:0.8rem">เวลา (เริ่ม - สิ้นสุด)</label>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <select id="c-start"></select> - <select id="c-end"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exam-section-title"><i class="fa-solid fa-calendar-check"></i> ตารางสอบ (ถ้ามี)</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>สอบกลางภาค (Midterm)</label>
+                        <input type="date" id="c-mid-date" style="margin-bottom:8px;">
+                        <div style="display:flex; gap:8px;">
+                            <input type="time" id="c-mid-start"> ถึง <input type="time" id="c-mid-end">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>สอบปลายภาค (Final)</label>
+                        <input type="date" id="c-final-date" style="margin-bottom:8px;">
+                        <div style="display:flex; gap:8px;">
+                            <input type="time" id="c-final-start"> ถึง <input type="time" id="c-final-end">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">ยกเลิก</button>
+                <button class="btn btn-primary" id="save-btn"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
     <div class="app-container">
         <div class="top-bar">
             <div class="brand">
-                <i class="fa-solid fa-graduation-cap fa-xl" style="color:var(--primary)"></i>
+                <div style="background:var(--primary-light); padding:8px; border-radius:10px;">
+                    <i class="fa-solid fa-graduation-cap fa-xl" style="color:var(--primary)"></i>
+                </div>
                 <div>
-                    <h1 style="line-height:1; font-size:1.4rem;">Smart Scheduler Pro</h1>
-                    <small style="color:var(--text-muted)">วางแผนเรียน + ตารางสอบ</small>
+                    <h1 style="line-height:1;">Smart Scheduler Pro <span style="font-size:0.8rem; opacity:0.7; font-weight:400;">v2</span></h1>
                 </div>
             </div>
             
@@ -255,7 +422,7 @@
                     <i id="theme-icon" class="fa-solid fa-moon"></i>
                 </button>
                 
-                <div style="width:1px; background:var(--border); height:24px; margin:0 4px;"></div>
+                <div style="width:1px; background:var(--border); height:24px; margin:0 8px;"></div>
                 
                 <input type="file" id="import-file" accept=".json" style="display:none" onchange="importFile(this)">
                 <button class="btn btn-outline btn-sm" onclick="document.getElementById('import-file').click()">
@@ -264,7 +431,7 @@
                 <button class="btn btn-outline btn-sm" onclick="exportJSON()">
                     <i class="fa-solid fa-download"></i> JSON
                 </button>
-                <div style="width:1px; background:var(--border); height:24px; margin:0 4px;"></div>
+                <div style="width:1px; background:var(--border); height:24px; margin:0 8px;"></div>
                 <button class="btn btn-outline btn-sm" onclick="exportImage()">
                     <i class="fa-solid fa-image"></i> รูปภาพ
                 </button>
@@ -275,137 +442,68 @@
         </div>
 
         <div>
-            <div class="card">
-                <h3><i class="fa-solid fa-calendar-plus"></i> เพิ่มรายวิชา</h3>
-                
-                <div class="form-group full">
-                    <label>รหัส/ชื่อวิชา</label>
-                    <input type="text" id="c-name" placeholder="Ex. 010063004 - Web Programming">
-                </div>
-
-                <div class="form-group full">
-                    <label>ประเภทวิชา</label>
-                    <div class="type-selector">
-                        <label class="radio-label">
-                            <input type="radio" name="c-type" value="major" checked> วิชาหลัก (Major)
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="c-type" value="minor"> วิชาเสรี (Elective)
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Sec</label>
-                        <input type="text" id="c-sec" placeholder="1">
-                    </div>
-                    <div class="form-group">
-                        <label>หน่วยกิต</label>
-                        <input type="number" id="c-credit" value="3" min="0" max="10">
-                    </div>
-                </div>
-
-                <div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border); margin-bottom:12px;">
-                    <label style="color:var(--primary)"><i class="fa-regular fa-clock"></i> เวลาเรียนปกติ</label>
-                    <div class="form-grid">
-                        <div class="form-group" style="margin-bottom:0">
-                            <select id="c-day">
-                                <option value="mon">จันทร์</option><option value="tue">อังคาร</option>
-                                <option value="wed">พุธ</option><option value="thu">พฤหัส</option>
-                                <option value="fri">ศุกร์</option><option value="sat">เสาร์</option><option value="sun">อาทิตย์</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="margin-bottom:0; display:flex; gap:5px; align-items:center;">
-                            <select id="c-start"></select> - <select id="c-end"></select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="exam-toggle" onclick="toggleExamForm()">
-                    <span><i class="fa-solid fa-calendar-check"></i> เพิ่มวันสอบ (Midterm / Final)</span>
-                    <i class="fa-solid fa-chevron-down" id="exam-chevron"></i>
-                </div>
-                <div class="exam-inputs" id="exam-form-area">
-                    <div class="form-group">
-                        <label>สอบกลางภาค (Midterm)</label>
-                        <div style="display:flex; gap:5px;">
-                            <input type="date" id="c-mid-date">
-                            <input type="time" id="c-mid-start" style="width:90px">
-                            <input type="time" id="c-mid-end" style="width:90px">
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0">
-                        <label>สอบปลายภาค (Final)</label>
-                        <div style="display:flex; gap:5px;">
-                            <input type="date" id="c-final-date">
-                            <input type="time" id="c-final-start" style="width:90px">
-                            <input type="time" id="c-final-end" style="width:90px">
-                        </div>
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:10px; margin-top:16px;">
-                    <button class="btn btn-primary" id="add-btn"><i class="fa-solid fa-floppy-disk"></i> บันทึกวิชา</button>
-                    <button class="btn btn-danger btn-sm" id="cancel-btn" style="display:none; width:auto">ยกเลิก</button>
-                </div>
-            </div>
+             <button class="btn btn-primary" onclick="openAddModal()" style="width:100%; margin-bottom:20px; padding: 16px;">
+                <i class="fa-solid fa-plus"></i> เพิ่มรายวิชาใหม่
+            </button>
 
             <div class="card" style="flex-grow:1">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3><i class="fa-solid fa-book-open"></i> รายวิชา (<span id="count-course">0</span>)</h3>
+                    <h3><i class="fa-solid fa-book-open" style="color:var(--primary)"></i> รายวิชาในแผน (<span id="count-course">0</span>)</h3>
                 </div>
                 
                 <div class="credit-stat-box">
                     <div class="stat-item">
                         <strong id="credit-major">0</strong>
-                        <span style="color:var(--text-muted)">หน่วยกิตหลัก</span>
+                        <span style="color:var(--text-muted)">หลัก</span>
                     </div>
-                    <div style="width:1px; background:var(--border);"></div>
+                    <div class="stat-divider"></div>
                     <div class="stat-item">
                         <strong id="credit-minor">0</strong>
-                        <span style="color:var(--text-muted)">หน่วยกิตเสรี</span>
+                        <span style="color:var(--text-muted)">เสรี</span>
                     </div>
-                    <div style="width:1px; background:var(--border);"></div>
+                    <div class="stat-divider"></div>
                     <div class="stat-item">
-                        <strong id="credit-total" style="color:var(--success)">0</strong>
+                        <strong id="credit-total" style="color:var(--primary)">0</strong>
                         <span style="color:var(--text-muted)">รวม</span>
                     </div>
                 </div>
 
-                <div id="course-list" style="max-height:300px; overflow-y:auto; font-size:0.9rem; margin-top:12px;"></div>
-                <button class="btn btn-outline btn-sm" onclick="clearPlan()" style="margin-top:10px; color:var(--danger); border-color:var(--danger); width:100%">
-                    <i class="fa-solid fa-trash"></i> ล้างข้อมูลแผนนี้
+                <div id="course-list" style="max-height:500px; overflow-y:auto; font-size:0.9rem; margin-top:16px; padding-right:4px;"></div>
+                <button class="btn btn-danger-soft btn-sm" onclick="clearPlan()" style="margin-top:16px; width:100%">
+                    <i class="fa-solid fa-trash-can"></i> ล้างข้อมูลแผนนี้
                 </button>
             </div>
         </div>
 
         <div id="capture-area">
             <div class="card" style="margin-bottom:20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3><i class="fa-solid fa-calendar-days"></i> ตารางเรียน</h3>
-                    <div id="current-plan-badge" style="background:var(--primary-light); color:var(--primary); padding:4px 12px; border-radius:20px; font-weight:600;">แผน A</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+                    <h3><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> ตารางเรียน</h3>
+                    <div id="current-plan-badge" style="background:var(--primary-light); color:var(--primary); padding:6px 16px; border-radius:20px; font-weight:600; font-size: 0.9rem;">แผน A</div>
                 </div>
                 <div class="table-container">
                     <table id="schedule-table">
-                        <thead><tr id="header-row"><th>วัน/เวลา</th></tr></thead>
+                        <thead><tr id="header-row"><th>เวลา</th></tr></thead>
                         <tbody id="schedule-body"></tbody>
                     </table>
                 </div>
-                <div style="margin-top:8px; font-size:0.8rem; color:var(--text-muted); text-align:right;">
-                    <span style="display:inline-block; width:10px; height:10px; background:var(--border); margin-right:4px;"></span>= วิชาหลัก
-                    <span style="display:inline-block; width:10px; height:10px; border:2px dashed var(--text-muted); margin-left:8px; margin-right:4px;"></span>= วิชาเสรี
+                <div style="margin-top:12px; font-size:0.8rem; color:var(--text-muted); text-align:right; display:flex; justify-content:flex-end; gap:16px;">
+                    <div style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block; width:12px; height:12px; background:var(--text-muted); border-radius:4px;"></span> วิชาหลัก</div>
+                    <div style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block; width:12px; height:12px; border:2px dashed var(--text-muted); border-radius:4px;"></span> วิชาเสรี</div>
                 </div>
             </div>
 
             <div class="card">
-                <h3><i class="fa-solid fa-scroll"></i> ตารางสอบ (Midterm & Final)</h3>
+                <h3><i class="fa-solid fa-scroll" style="color:var(--primary)"></i> ตารางสอบ (Midterm & Final)</h3>
                 <div id="exam-list">
-                    <p style="color:var(--text-muted); text-align:center;">ยังไม่มีข้อมูลวันสอบ</p>
+                    <div style="text-align:center; padding:30px; color:var(--text-muted); background:var(--surface-alt); border-radius:var(--radius); border: 2px dashed var(--border);">
+                        <i class="fa-regular fa-calendar-xmark fa-2x" style="margin-bottom:10px; opacity:0.5;"></i><br>
+                        ยังไม่มีข้อมูลวันสอบในแผนนี้
+                    </div>
                 </div>
             </div>
         </div>
-        <footer>By Padory Youtube:@Padory.6742</footer>
+        <footer>Developed by Padory | Youtube: @Padory.6742</footer>
     </div>
 
     <script>
@@ -414,7 +512,7 @@
             hours: [8,9,10,11,12,13,14,15,16,17,18,19,20],
             days: ['mon','tue','wed','thu','fri','sat','sun'],
             dayLabels: {mon:'จันทร์',tue:'อังคาร',wed:'พุธ',thu:'พฤหัส',fri:'ศุกร์',sat:'เสาร์',sun:'อาทิตย์'},
-            colors: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316']
+            // Removed fixed color palettes, using dynamic colors now
         };
 
         let state = {
@@ -431,7 +529,79 @@
             initSelects();
             initTable();
             render();
+            setupConflictListeners(); // New listener setup
         });
+
+        // --- NEW: Modal & Conflict Check Logic ---
+        function setupConflictListeners() {
+            // Listen for changes in time/day selects to check conflicts in real-time
+            ['c-day', 'c-start', 'c-end'].forEach(id => {
+                document.getElementById(id).addEventListener('change', checkRealTimeConflict);
+            });
+        }
+
+        function checkRealTimeConflict() {
+             const day = document.getElementById('c-day').value;
+             const start = parseInt(document.getElementById('c-start').value);
+             const end = parseInt(document.getElementById('c-end').value);
+             const warning = document.getElementById('conflict-warning');
+             
+             // Create a temporary course object for checking
+             const tempCourse = { id: state.editId, day, start, end };
+             
+             if (checkConflict(tempCourse, getCourses())) {
+                 warning.style.display = 'flex';
+             } else {
+                 warning.style.display = 'none';
+             }
+        }
+
+        function openAddModal() {
+            resetForm();
+            document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-calendar-plus"></i> เพิ่มรายวิชาใหม่';
+            document.getElementById('save-btn').innerHTML = '<i class="fa-solid fa-plus"></i> เพิ่มวิชา';
+            document.getElementById('course-modal').classList.add('show');
+            // Set default color randomly for new course
+            document.getElementById('c-color').value = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+             checkRealTimeConflict(); // Check initial state
+        }
+
+        function openEditModal(id) {
+            const c = getCourses().find(x => x.id === id);
+            if(!c) return;
+            
+            // Populate form
+            document.getElementById('c-name').value = c.name;
+            document.querySelector(`input[name="c-type"][value="${c.type || 'major'}"]`).checked = true;
+            document.getElementById('c-sec').value = c.sec;
+            document.getElementById('c-credit').value = c.credit;
+            document.getElementById('c-location').value = c.location || '';
+            document.getElementById('c-instructor').value = c.instructor || '';
+            document.getElementById('c-color').value = c.color || '#6366f1'; // Use saved color or default
+
+            document.getElementById('c-day').value = c.day;
+            document.getElementById('c-start').value = c.start;
+            document.getElementById('c-start').dispatchEvent(new Event('change')); // Update end time options
+            document.getElementById('c-end').value = c.end;
+
+            document.getElementById('c-mid-date').value = c.midDate || '';
+            document.getElementById('c-mid-start').value = c.midStart || '';
+            document.getElementById('c-mid-end').value = c.midEnd || '';
+            document.getElementById('c-final-date').value = c.finalDate || '';
+            document.getElementById('c-final-start').value = c.finalStart || '';
+            document.getElementById('c-final-end').value = c.finalEnd || '';
+
+            state.editId = id;
+            document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> แก้ไขรายวิชา';
+            document.getElementById('save-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกแก้ไข';
+            document.getElementById('course-modal').classList.add('show');
+            checkRealTimeConflict(); // Check conflict for the data being edited
+        }
+
+        function closeModal() {
+            document.getElementById('course-modal').classList.remove('show');
+            resetForm();
+        }
 
         // --- Theme Logic ---
         function initTheme() {
@@ -449,13 +619,7 @@
         function applyTheme() {
             document.body.setAttribute('data-theme', state.theme);
             const icon = document.getElementById('theme-icon');
-            if(state.theme === 'dark') {
-                icon.classList.remove('fa-moon');
-                icon.classList.add('fa-sun');
-            } else {
-                icon.classList.remove('fa-sun');
-                icon.classList.add('fa-moon');
-            }
+            icon.className = state.theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }
 
         function initSelects() {
@@ -464,8 +628,15 @@
             
             s.addEventListener('change', () => {
                 e.innerHTML = '';
+                // Ensure end time is always after start time
                 CONFIG.hours.forEach(h => { if(h > parseInt(s.value)) e.add(new Option(`${h}:00`, h)); });
-                e.value = Math.min(parseInt(s.value)+3, 20);
+                // Auto-select 3 hours duration if possible, else max possible
+                let targetEnd = parseInt(s.value) + 3;
+                if (targetEnd > 20) targetEnd = 20;
+                 // Check if target exists in options, if not select the last one
+                let optionExists = Array.from(e.options).some(opt => parseInt(opt.value) === targetEnd);
+                e.value = optionExists ? targetEnd : e.options[e.options.length -1].value;
+
             });
             s.dispatchEvent(new Event('change'));
         }
@@ -507,18 +678,13 @@
             document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('active'));
             document.querySelector(`button[onclick="switchPlan('${p}')"]`).classList.add('active');
             document.getElementById('current-plan-badge').innerText = p === 'planA' ? 'แผน A' : (p === 'planB' ? 'แผน B' : 'แผน C');
-            resetForm(); render();
+            render();
             showToast(`เปลี่ยนเป็น ${document.getElementById('current-plan-badge').innerText} แล้ว`);
         }
 
-        function strColor(str) {
-            let h=0; for(let i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h << 5) - h);
-            return CONFIG.colors[Math.abs(h) % CONFIG.colors.length];
-        }
-
-        function toggleExamForm() {
-            document.getElementById('exam-form-area').classList.toggle('show');
-            document.getElementById('exam-chevron').classList.toggle('fa-rotate-180');
+        // Helper function to darken color for text contrasting
+        function adjustColor(color, amount) {
+            return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
         }
 
         // --- Render ---
@@ -526,7 +692,7 @@
             const courses = getCourses();
             
             // 1. Clear Table
-            document.querySelectorAll('.drop-zone').forEach(td => { td.innerHTML = ''; td.classList.remove('conflict-pattern'); });
+            document.querySelectorAll('.drop-zone').forEach(td => { td.innerHTML = ''; });
 
             // 2. Render Courses
             let majorCr = 0, minorCr = 0;
@@ -541,29 +707,34 @@
                 if(cell) {
                     const div = document.createElement('div');
                     div.className = `course-block ${c.type === 'minor' ? 'minor-type' : ''}`;
-                    div.style.background = strColor(c.name);
+                    // Use user-defined color
+                    div.style.backgroundColor = c.color || 'var(--primary)';
+                    // Ensure text is readable (simple logic: if color is light, use dark text)
+                    // A better approach would be calculating luminance, but for simplicity:
+                    div.style.color = '#fff'; 
+                    div.style.borderColor = adjustColor(c.color || '#6366f1', -40); // Darker border
+
                     div.style.width = `calc(${dur * 100}% + ${dur}px - 5px)`;
                     div.draggable = true;
                     div.dataset.id = c.id;
                     
-                    // Add badge for Minor
                     const typeBadge = c.type === 'minor' ? '<span class="badge-type">เสรี</span>' : '';
                     
                     div.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:start">
-                            <strong>${c.name}</strong>
+                        <div class="course-meta">
+                            <div class="course-title" title="${c.name}">${c.name}</div>
                             ${typeBadge}
                         </div>
-                        <span>Sec ${c.sec}</span>
+                        <div style="font-size:0.75rem; opacity:0.9;">Sec ${c.sec} | ${c.credit} นก.</div>
                         <button class="btn-del-xs" onclick="delCourse('${c.id}', event)">×</button>
                     `;
                     
                     div.ondragstart = e => e.dataTransfer.setData('id', c.id);
-                    div.onclick = e => { if(!e.target.closest('.btn-del-xs')) editCourse(c.id); };
+                    div.onclick = e => { if(!e.target.closest('.btn-del-xs')) openEditModal(c.id); };
                     
                     if(checkConflict(c, courses)) {
                         div.classList.add('conflict-pattern');
-                        div.title = 'เวลาเรียนชนกัน!';
+                        div.title = `${c.name} - เวลาเรียนชนกัน!`;
                     }
                     cell.appendChild(div);
                 }
@@ -575,15 +746,34 @@
             
             courses.forEach(c => {
                 const div = document.createElement('div');
-                const badge = c.type === 'minor' ? '<span style="background:var(--bg); color:var(--text-muted); padding:2px 6px; border-radius:4px; font-size:0.7em;">เสรี</span>' : '<span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-size:0.7em;">หลัก</span>';
+                div.className = 'course-list-item';
+                // Use user-defined color for border indicator
+                div.style.borderLeftColor = c.color || 'var(--primary)';
+
+                const badge = c.type === 'minor' 
+                    ? '<span style="background:var(--surface-alt); color:var(--text-muted); padding:2px 8px; border-radius:12px; font-size:0.7em; font-weight:600; border: 1px solid var(--border);">เสรี</span>' 
+                    : '<span style="background:var(--primary-light); color:var(--primary); padding:2px 8px; border-radius:12px; font-size:0.7em; font-weight:600;">หลัก</span>';
                 
-                div.style.cssText = `padding:8px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; border-left:4px solid ${strColor(c.name)}`;
+                let detailsHtml = `<div style="color:var(--text-muted);font-size:0.85em; margin-top:4px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                    <span><i class="fa-regular fa-clock"></i> ${CONFIG.dayLabels[c.day]} ${c.start}:00-${c.end}:00</span>
+                    <span><i class="fa-solid fa-layer-group"></i> ${c.credit} นก. (Sec ${c.sec})</span>
+                </div>`;
+                
+                if(c.location || c.instructor) {
+                     detailsHtml += '<div style="color:var(--text-muted);font-size:0.85em; display:flex; flex-wrap:wrap; gap:12px; margin-top:6px; padding-top:6px; border-top:1px dashed var(--border);">';
+                     if(c.location) detailsHtml += `<span><i class="fa-solid fa-location-dot" style="opacity:0.7"></i> ${c.location}</span>`;
+                     if(c.instructor) detailsHtml += `<span><i class="fa-solid fa-user-tie" style="opacity:0.7"></i> ${c.instructor}</span>`;
+                     detailsHtml += '</div>';
+                }
+
                 div.innerHTML = `
-                    <div>
-                        <b>${c.name}</b> ${badge}<br>
-                        <span style="color:var(--text-muted);font-size:0.8em">${CONFIG.dayLabels[c.day]} ${c.start}:00-${c.end}:00 | ${c.credit} นก.</span>
+                    <div style="flex:1; padding-right:12px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                             <b style="font-size:1rem; color:var(--text);">${c.name}</b> ${badge}
+                        </div>
+                        ${detailsHtml}
                     </div>
-                    <div><button class="btn btn-outline btn-sm" onclick="editCourse('${c.id}')"><i class="fa-solid fa-pen"></i></button></div>
+                    <div><button class="btn btn-outline btn-sm" style="border-radius:8px; padding:6px 10px;" onclick="openEditModal('${c.id}')"><i class="fa-solid fa-pen"></i></button></div>
                 `;
                 list.appendChild(div);
             });
@@ -609,7 +799,14 @@
                 if(c.finalDate) exams.push({ type:'Final', date:c.finalDate, start:c.finalStart, end:c.finalEnd, course:c });
             });
 
-            if(exams.length === 0) { list.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:10px;">ยังไม่มีข้อมูลวันสอบ</p>'; return; }
+            if(exams.length === 0) { 
+                list.innerHTML = `
+                    <div style="text-align:center; padding:30px; color:var(--text-muted); background:var(--surface-alt); border-radius:var(--radius); border: 2px dashed var(--border);">
+                        <i class="fa-regular fa-calendar-xmark fa-2x" style="margin-bottom:10px; opacity:0.5;"></i><br>
+                        ยังไม่มีข้อมูลวันสอบในแผนนี้
+                    </div>`; 
+                return; 
+            }
 
             // Sort by date then time
             exams.sort((a,b) => new Date(`${a.date}T${a.start}`) - new Date(`${b.date}T${b.start}`));
@@ -622,27 +819,30 @@
                 );
 
                 const d = new Date(e.date);
-                const dateStr = d.toLocaleDateString('th-TH', {day:'numeric', month:'short'});
+                const dateStr = d.toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'2-digit'});
                 
-                // Color & Icon Logic
                 const isMid = e.type === 'Midterm';
                 const typeLabel = isMid ? 'Midterm' : 'Final';
-                // ICON CHANGED: fa-file-lines -> fa-file-pen for midterm
                 const typeIcon = isMid ? '<i class="fa-solid fa-file-pen"></i>' : '<i class="fa-solid fa-flag-checkered"></i>';
                 const rowClass = isMid ? 'is-midterm' : 'is-final';
 
                 const row = document.createElement('div');
                 row.className = `exam-item ${rowClass} ${isConflict ? 'exam-conflict' : ''}`;
                 
+                // Use course color for exam name text
+                const courseColor = e.course.color || 'var(--text)';
+
                 row.innerHTML = `
                     <div class="exam-date-box">
                         <span class="exam-badge">${typeIcon} ${typeLabel}</span>
                         <strong>${dateStr}</strong>
                     </div>
                     <div class="exam-details">
-                        <div class="exam-name" style="color:${strColor(e.course.name)}">${e.course.name}</div>
+                        <div class="exam-name" style="color:${courseColor};">
+                             ${e.course.name}
+                        </div>
                         <div class="exam-time">
-                            <i class="fa-regular fa-clock"></i> ${e.start} - ${e.end}
+                            <i class="fa-regular fa-clock"></i> ${e.start || '--:--'} - ${e.end || '--:--'}
                             ${isConflict ? '<span class="badge-conflict"><i class="fa-solid fa-triangle-exclamation"></i> เวลาชนกัน!</span>' : ''}
                         </div>
                     </div>
@@ -652,23 +852,37 @@
         }
 
         function checkConflict(c, all) {
+            // Check against other courses, excluding itself
             return all.some(o => o.id !== c.id && o.day === c.day && (c.start < o.end && c.end > o.start));
         }
 
         // --- Actions ---
-        document.getElementById('add-btn').onclick = () => {
+        // Changed from add-btn.onclick to a named function called by the modal save button
+        document.getElementById('save-btn').onclick = () => {
             const name = document.getElementById('c-name').value.trim();
             if(!name) return showToast('กรุณากรอกชื่อวิชา', 'error');
+
+            // Final conflict check before saving
+            const day = document.getElementById('c-day').value;
+            const start = parseInt(document.getElementById('c-start').value);
+            const end = parseInt(document.getElementById('c-end').value);
+            const tempCourse = { id: state.editId, day, start, end };
+            if(checkConflict(tempCourse, getCourses())) {
+                 if(!confirm('เวลาเรียนชนกับวิชาอื่น! คุณต้องการบันทึกหรือไม่?')) return;
+            }
 
             const obj = {
                 id: state.editId || Date.now().toString(),
                 name,
-                type: document.querySelector('input[name="c-type"]:checked').value, // Get Type
+                type: document.querySelector('input[name="c-type"]:checked').value,
                 sec: document.getElementById('c-sec').value,
                 credit: document.getElementById('c-credit').value,
-                day: document.getElementById('c-day').value,
-                start: parseInt(document.getElementById('c-start').value),
-                end: parseInt(document.getElementById('c-end').value),
+                location: document.getElementById('c-location').value.trim(),
+                instructor: document.getElementById('c-instructor').value.trim(),
+                color: document.getElementById('c-color').value, // Save color
+                day: day,
+                start: start,
+                end: end,
                 // Exams
                 midDate: document.getElementById('c-mid-date').value,
                 midStart: document.getElementById('c-mid-start').value,
@@ -688,71 +902,36 @@
                 showToast('เพิ่มวิชาสำเร็จ');
             }
             state.data[state.plan] = courses;
-            save(); resetForm(); render();
+            save(); closeModal(); render();
         };
-
-        function editCourse(id) {
-            const c = getCourses().find(x => x.id === id);
-            if(!c) return;
-            document.getElementById('c-name').value = c.name;
-            
-            // Set Radio Type
-            if(c.type) {
-                document.querySelector(`input[name="c-type"][value="${c.type}"]`).checked = true;
-            } else {
-                document.querySelector(`input[name="c-type"][value="major"]`).checked = true;
-            }
-
-            document.getElementById('c-sec').value = c.sec;
-            document.getElementById('c-credit').value = c.credit;
-            document.getElementById('c-day').value = c.day;
-            document.getElementById('c-start').value = c.start;
-            document.getElementById('c-start').dispatchEvent(new Event('change'));
-            document.getElementById('c-end').value = c.end;
-            
-            // Exam data
-            document.getElementById('c-mid-date').value = c.midDate || '';
-            document.getElementById('c-mid-start').value = c.midStart || '';
-            document.getElementById('c-mid-end').value = c.midEnd || '';
-            document.getElementById('c-final-date').value = c.finalDate || '';
-            document.getElementById('c-final-start').value = c.finalStart || '';
-            document.getElementById('c-final-end').value = c.finalEnd || '';
-            
-            if(c.midDate || c.finalDate) {
-                 document.getElementById('exam-form-area').classList.add('show');
-                 document.getElementById('exam-chevron').classList.add('fa-rotate-180');
-            }
-
-            state.editId = id;
-            document.getElementById('add-btn').innerHTML = '<i class="fa-solid fa-save"></i> บันทึกแก้ไข';
-            document.getElementById('add-btn').style.background = 'var(--warning)';
-            document.getElementById('cancel-btn').style.display = 'inline-block';
-        }
 
         function delCourse(id, e) {
             if(e) e.stopPropagation();
-            if(confirm('ลบวิชานี้?')) {
+            // Use a nicer confirm dialog (optional, stick to native for now)
+            if(confirm('ต้องการลบรายวิชานี้ใช่หรือไม่?')) {
                 state.data[state.plan] = getCourses().filter(c => c.id !== id);
-                if(state.editId === id) resetForm();
                 save(); render();
+                showToast('ลบวิชาแล้ว', 'success');
             }
         }
 
         function resetForm() {
             state.editId = null;
-            document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="time"]').forEach(i => i.value = '');
-            document.querySelector('input[name="c-type"][value="major"]').checked = true; // Reset radio
+            document.querySelectorAll('.modal-body input').forEach(i => {
+                if(i.type !== 'radio' && i.type !== 'color') i.value = '';
+            });
+            document.querySelector('input[name="c-type"][value="major"]').checked = true;
             document.getElementById('c-credit').value = 3;
-            // ICON CHANGED: fa-check -> fa-floppy-disk in reset function
-            document.getElementById('add-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกวิชา';
-            document.getElementById('add-btn').style.background = '';
-            document.getElementById('cancel-btn').style.display = 'none';
-            document.getElementById('exam-form-area').classList.remove('show');
-            document.getElementById('exam-chevron').classList.remove('fa-rotate-180');
+            document.getElementById('c-start').dispatchEvent(new Event('change')); // Reset end time
+            document.getElementById('conflict-warning').style.display = 'none'; // Hide warning
         }
 
-        document.getElementById('cancel-btn').onclick = resetForm;
-        function clearPlan() { if(confirm('ล้างตารางแผนนี้ทั้งหมด?')) { state.data[state.plan] = []; save(); render(); showToast('ล้างตารางแล้ว'); }}
+        function clearPlan() { 
+            if(courses.length === 0) return showToast('ไม่มีข้อมูลให้ลบ', 'error');
+            if(confirm(`คุณแน่ใจหรือไม่ที่จะลบข้อมูลทั้งหมดใน "${document.getElementById('current-plan-badge').innerText}"? การกระทำนี้ไม่สามารถย้อนกลับได้`)) { 
+                state.data[state.plan] = []; save(); render(); showToast('ล้างข้อมูลแผนนี้เรียบร้อยแล้ว'); 
+            }
+        }
 
         function handleDrop(e) {
             e.preventDefault(); e.currentTarget.style.background = '';
@@ -763,11 +942,18 @@
                 const newStart = parseInt(e.currentTarget.dataset.hour);
                 const dur = c.end - c.start;
                 if(newStart + dur <= 20) {
+                    // Check conflict at drop location before saving
+                    const tempCourse = { ...c, day: e.currentTarget.dataset.day, start: newStart, end: newStart + dur };
+                    if(checkConflict(tempCourse, courses)) {
+                        showToast('ไม่สามารถย้ายได้: เวลาชนกับวิชาอื่น!', 'error');
+                        return;
+                    }
+
                     c.day = e.currentTarget.dataset.day;
                     c.start = newStart;
                     c.end = newStart + dur;
                     save(); render();
-                } else { showToast('เวลาเกิน 20:00 น.', 'error'); }
+                } else { showToast('เวลาเรียนเกิน 20:00 น. ไม่สามารถวางได้', 'error'); }
             }
         }
 
@@ -776,9 +962,10 @@
             const blob = new Blob([JSON.stringify(state.data, null, 2)], {type:'application/json'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'smart_scheduler_data.json';
+            const date = new Date().toISOString().slice(0,10);
+            a.download = `smart_scheduler_backup_${date}.json`;
             a.click();
-            showToast('Save JSON เรียบร้อย');
+            showToast('Export ไฟล์ JSON เรียบร้อย');
         }
 
         function importFile(input) {
@@ -788,71 +975,116 @@
             reader.onload = e => {
                 try {
                     const json = JSON.parse(e.target.result);
-                    if(json.planA) { // Simple validation
-                        state.data = json;
-                        save(); render();
-                        showToast('Import ข้อมูลสำเร็จ');
-                    } else throw new Error();
-                } catch { showToast('ไฟล์ JSON ไม่ถูกต้อง', 'error'); }
+                    if(json.planA && Array.isArray(json.planA)) { // Basic validation
+                        if(confirm('การ Import จะทับข้อมูลปัจจุบันทั้งหมด คุณแน่ใจหรือไม่?')) {
+                            state.data = json;
+                            save(); render();
+                            showToast('Import ข้อมูลสำเร็จ');
+                        }
+                    } else throw new Error('Invalid structure');
+                } catch { showToast('ไฟล์ JSON ไม่ถูกต้อง หรือโครงสร้างข้อมูลผิดพลาด', 'error'); }
             };
             reader.readAsText(file);
-            input.value = ''; // Reset
+            input.value = ''; // Reset input
         }
 
         async function exportImage() {
             const el = document.getElementById('capture-area');
             const btn = document.querySelector('button[onclick="exportImage()"]');
-            const oldHtml = btn.innerHTML; btn.innerHTML = '...';
-            
-            // Force light bg for export clarity
-            const originalBg = el.style.backgroundColor;
-            const originalColor = el.style.color;
-            if(state.theme === 'dark') {
-               // Optional: switch to light for clean export or keep as is.
-               // Keeping as is per WYSIWYG expectation, but setting explicit color to avoid transparent bg issues.
-            }
+            const oldHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังสร้าง...';
+            btn.disabled = true;
 
             try {
+                // Temporarily remove shadows and rounded corners for cleaner capture
+                el.style.boxShadow = 'none';
+                el.style.borderRadius = '0';
+                
                 const canvas = await html2canvas(el, {
-                    scale:2, 
-                    backgroundColor: state.theme === 'dark' ? '#1f2937' : '#f3f4f6'
+                    scale: 2, // Higher resolution
+                    useCORS: true,
+                    backgroundColor: state.theme === 'dark' ? '#1e293b' : '#ffffff', // Use surface color
+                    logging: false
                 });
+                
+                // Restore styles
+                el.style.boxShadow = '';
+                el.style.borderRadius = '';
+
                 const link = document.createElement('a');
                 link.download = `schedule_${state.plan}.png`;
-                link.href = canvas.toDataURL();
+                link.href = canvas.toDataURL('image/png');
                 link.click();
                 showToast('บันทึกรูปภาพแล้ว');
-            } catch(e) { showToast('เกิดข้อผิดพลาด', 'error'); }
-            btn.innerHTML = oldHtml;
+            } catch(e) { 
+                console.error(e);
+                showToast('เกิดข้อผิดพลาดในการสร้างรูปภาพ', 'error'); 
+            }
+            btn.innerHTML = oldHtml; btn.disabled = false;
         }
 
         async function exportPDF() {
             const el = document.getElementById('capture-area');
             const btn = document.querySelector('button[onclick="exportPDF()"]');
-            const oldHtml = btn.innerHTML; btn.innerHTML = '...';
+            const oldHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังสร้าง...';
+            btn.disabled = true;
 
             try {
+                 // Temporarily remove shadows for cleaner capture
+                el.style.boxShadow = 'none';
+                
                 const canvas = await html2canvas(el, {
-                    scale:2, 
-                    backgroundColor: state.theme === 'dark' ? '#1f2937' : '#f3f4f6'
+                    scale: 2,
+                    backgroundColor: state.theme === 'dark' ? '#1e293b' : '#ffffff'
                 });
+                
+                el.style.boxShadow = ''; // Restore
+
                 const imgData = canvas.toDataURL('image/png');
-                const pdf = new window.jspdf.jsPDF('l', 'mm', 'a4');
-                const w = pdf.internal.pageSize.getWidth();
-                const h = (canvas.height * w) / canvas.width;
-                pdf.addImage(imgData, 'PNG', 0, 10, w, h);
+                // A4 landscape size in mm
+                const pdf = new window.jspdf.jsPDF('l', 'mm', 'a4'); 
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                
+                // Calculate dimensions to fit perfectly nicely on A4 landscape with margin
+                const margin = 10;
+                const maxW = pageWidth - (margin * 2);
+                const maxH = pageHeight - (margin * 2);
+                
+                let finalW = maxW;
+                let finalH = (imgHeight * maxW) / imgWidth;
+
+                if (finalH > maxH) {
+                    finalH = maxH;
+                    finalW = (imgWidth * maxH) / imgHeight;
+                }
+                
+                // Center the image
+                const x = (pageWidth - finalW) / 2;
+                const y = (pageHeight - finalH) / 2;
+
+                pdf.addImage(imgData, 'PNG', x, y, finalW, finalH);
                 pdf.save(`schedule_${state.plan}.pdf`);
                 showToast('บันทึก PDF แล้ว');
-            } catch(e) { showToast('เกิดข้อผิดพลาด', 'error'); }
-            btn.innerHTML = oldHtml;
+            } catch(e) { 
+                console.error(e);
+                showToast('เกิดข้อผิดพลาดในการสร้าง PDF', 'error'); 
+            }
+            btn.innerHTML = oldHtml; btn.disabled = false;
         }
 
         function showToast(msg, type='success') {
+            const existingToast = document.querySelector('.toast');
+            if(existingToast) existingToast.remove();
+
             const t = document.createElement('div');
             t.className = 'toast';
-            t.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-exclamation':'fa-circle-check'}" style="color:${type==='error'?'#ef4444':'#10b981'}"></i> ${msg}`;
+            t.style.borderLeft = `4px solid ${type==='error' ? 'var(--danger)' : 'var(--success)'}`;
+            t.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-exclamation':'fa-circle-check'}" style="color:${type==='error'?'var(--danger)':'var(--success)'}"></i> ${msg}`;
             document.body.appendChild(t);
-            setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(), 300); }, 3000);
+            setTimeout(() => { t.style.opacity='0'; t.style.transform='translateY(20px)'; setTimeout(()=>t.remove(), 300); }, 3000);
         }
     </script>
 </body>
